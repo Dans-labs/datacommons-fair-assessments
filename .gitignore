@@ -13,5 +13,6 @@ todos.json
 !.vscode/
 !.vscode/settings.json
 !.vscode/extensions.json
+.env
 .env.development
 .env.production
