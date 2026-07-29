@@ -2,6 +2,7 @@ import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
 import { CheckboxGroup as BaseCheckboxGroup } from "@base-ui/react/checkbox-group";
 import { Fieldset } from "@base-ui/react/fieldset";
 import { Field } from "@base-ui/react/field";
+import { CheckIcon } from "@heroicons/react/20/solid";
 
 type CheckboxItem = {
   id: string;
@@ -72,24 +73,5 @@ export function Checkbox({
       </BaseCheckbox.Root>
       {label}
     </label>
-  );
-}
-
-function CheckIcon(props: React.ComponentProps<"svg">) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-      style={{ display: "block", ...props.style }}
-    >
-      <path d="m2.5 8.5 4 4 7-9" />
-    </svg>
   );
 }

@@ -323,7 +323,7 @@ export function AssessmentResult({ result }: { result: ResultWithRaw }) {
                               >
                                 {dim.label}
                               </span>
-                              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
                                 {dim.full}
                               </span>
                             </div>

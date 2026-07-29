@@ -144,17 +144,31 @@ function AssessmentResults({ id }: { id: string }) {
 
   if (isLoading) {
     return (
-      <p className="mt-4 flex gap-2">
-        <Loader noPadding /> {m.loading()}
-      </p>
+      <motion.div
+        variants={listVariants}
+        initial="hidden"
+        animate="show"
+        className="w-100 flex justify-center"
+      >
+        <motion.p variants={cardVariants} className="mt-2 flex gap-2">
+          <Loader noPadding /> {m.loading()}
+        </motion.p>
+      </motion.div>
     );
   }
 
   if (error) {
     return (
-      <p className="mt-4 text-red-500" role="alert">
-        {m.errorHeader()}: {error instanceof Error ? error.message : m.errorDescription()}
-      </p>
+      <motion.div
+        variants={listVariants}
+        initial="hidden"
+        animate="show"
+        className="w-100 flex justify-center"
+      >
+        <motion.p variants={cardVariants} className="mt-2 text-red-500" role="alert">
+          {m.errorHeader()}: {error instanceof Error ? error.message : m.errorDescription()}
+        </motion.p>
+      </motion.div>
     );
   }
 
@@ -163,7 +177,7 @@ function AssessmentResults({ id }: { id: string }) {
   }
 
   return (
-    <div className="rounded-2xl ">
+    <>
       <div className="flex items-baseline justify-between mb-1">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
           {m.assessmentResultsHeader()}
@@ -184,6 +198,6 @@ function AssessmentResults({ id }: { id: string }) {
           </motion.div>
         ))}
       </motion.div>
-    </div>
+    </>
   );
 }
