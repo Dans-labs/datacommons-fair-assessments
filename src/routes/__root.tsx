@@ -1,14 +1,13 @@
 import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
-
 import TanStackQueryDevtools from "@/integrations/tanstack-query/devtools";
-
 import { getLocale } from "@/paraglide/runtime";
-
 import appCss from "@/styles.css?url";
-
 import type { QueryClient } from "@tanstack/react-query";
+import { ThemeProvider } from "#/components/ThemeProvider";
+import Header from "#/components/Header";
+import Footer from "#/components/Footer";
 
 interface MyRouterContext {
   queryClient: QueryClient;
@@ -65,7 +64,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {children}
+        <ThemeProvider>
+          <div className="flex flex-col align-stretch min-h-screen">
+            <Header />
+            {children}
+          </div>
+          <Footer />
+        </ThemeProvider>
         <TanStackDevtools
           config={{
             position: "bottom-right",

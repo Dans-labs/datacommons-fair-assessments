@@ -19,113 +19,102 @@ function Home() {
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
 
   return (
-    <div className="flex flex-col align-stretch min-h-screen">
-      <div className="bg-linear-to-b from-slate-300 to-slate-200 dark:from-slate-900 dark:to-slate-800 text-black dark:text-white">
-        <div className="mx-auto w-180 max-w-full px-4 py-8">
-          <h1 className="text-4xl font-bold">{m.homeHeader()}</h1>
-          <p className="text-slate-800 dark:text-slate-300 mb-0">{m.homeDescription()}</p>
-        </div>
-      </div>
-      <MotionConfig reducedMotion="user">
-        <div
-          className="flex-1 flex sm:items-start sm:justify-center p-4 md:p-8 flex-col sm:flex-row gap-4 sm:gap-8 
-        bg-linear-to-b from-slate-50 to-slate-200 dark:from-slate-950 dark:to-slate-900
-        "
-        >
-          <motion.div
-            layout="position"
-            transition={{ type: "spring", stiffness: 260, damping: 26 }}
+    <MotionConfig reducedMotion="user">
+      <div
+        className="flex-1 flex sm:items-start sm:justify-center p-4 md:p-8 flex-col sm:flex-row gap-4 sm:gap-8 
+      bg-linear-to-b from-slate-50 to-slate-200 dark:from-slate-950 dark:to-slate-900
+      "
+      >
+        <motion.div layout="position" transition={{ type: "spring", stiffness: 260, damping: 26 }}>
+          <Form
+            className="sm:w-60 md:w-80 lg:w-100 max-w-screen bg-indigo-100 dark:bg-indigo-950 p-8 rounded-lg shadow-sm relative overflow-hidden"
+            errors={errors}
+            onSubmit={async (event) => {
+              event.preventDefault();
+              const formData = new FormData(event.currentTarget);
+              const pid = formData.get("url") as string;
+              const assessors = formData.getAll("assessment-options") as Assessment[];
+
+              const newErrors: Record<string, string> = {};
+
+              try {
+                new URL(pid);
+              } catch {
+                newErrors.url = m.invalidUrl();
+              }
+
+              if (assessors.length === 0) {
+                newErrors["assessment-options"] = m.selectAtLeastOneAssessment();
+              }
+
+              if (Object.keys(newErrors).length > 0) {
+                setErrors(newErrors);
+                return;
+              }
+
+              try {
+                const result = await performAssessment.mutateAsync({ pid, assessors });
+                setAssessmentId(result.id);
+                setErrors({});
+              } catch (err) {
+                setErrors({ root: err instanceof Error ? err.message : m.genericError() });
+              }
+            }}
           >
-            <Form
-              className="sm:w-60 md:w-80 lg:w-100 max-w-screen bg-indigo-100 dark:bg-indigo-950 p-8 rounded-lg shadow-sm relative overflow-hidden"
-              errors={errors}
-              onSubmit={async (event) => {
-                event.preventDefault();
-                const formData = new FormData(event.currentTarget);
-                const pid = formData.get("url") as string;
-                const assessors = formData.getAll("assessment-options") as Assessment[];
-
-                const newErrors: Record<string, string> = {};
-
-                try {
-                  new URL(pid);
-                } catch {
-                  newErrors.url = m.invalidUrl();
-                }
-
-                if (assessors.length === 0) {
-                  newErrors["assessment-options"] = m.selectAtLeastOneAssessment();
-                }
-
-                if (Object.keys(newErrors).length > 0) {
-                  setErrors(newErrors);
-                  return;
-                }
-
-                try {
-                  const result = await performAssessment.mutateAsync({ pid, assessors });
-                  setAssessmentId(result.id);
-                  setErrors({});
-                } catch (err) {
-                  setErrors({ root: err instanceof Error ? err.message : m.genericError() });
-                }
-              }}
-            >
-              <div className="h-1.5 w-full bg-indigo-500 dark:bg-indigo-600 absolute top-0 left-0" />
-              <Input
-                label={m.enterDoiUrl()}
-                name="url"
-                type="url"
-                pattern="https?://.*"
-                placeholder="https://doi.org/10.1234/example"
-                className="mb-6"
-              />
-              <CheckboxGroup
-                name="assessment-options"
-                groupLabel={m.selectAssessments()}
-                items={[
-                  { id: "fuji", label: "F-UJI", value: "fuji" },
-                  { id: "fair_champion", label: "FAIR Champion", value: "fair_champion" },
-                ]}
-                defaultValue={["fuji", "fair_champion"]}
-                className="mb-8"
-              />
-              <Button type="submit" disabled={performAssessment.isPending} className="text-xl">
-                {performAssessment.isPending ? (
-                  <span className="flex gap-2">
-                    <Loader noPadding size="5" />
-                    {m.assessingButton()}
-                  </span>
-                ) : (
-                  m.assessButton()
-                )}
-              </Button>
-
-              {errors.root && (
-                <p className="mt-4 text-sm text-red-500" role="alert">
-                  {errors.root}
-                </p>
+            <div className="h-1.5 w-full bg-indigo-500 dark:bg-indigo-600 absolute top-0 left-0" />
+            <Input
+              label={m.enterDoiUrl()}
+              name="url"
+              type="url"
+              pattern="https?://.*"
+              placeholder="https://doi.org/10.1234/example"
+              className="mb-6"
+            />
+            <CheckboxGroup
+              name="assessment-options"
+              groupLabel={m.selectAssessments()}
+              items={[
+                { id: "fuji", label: "F-UJI", value: "fuji" },
+                { id: "fair_champion", label: "FAIR Champion", value: "fair_champion" },
+              ]}
+              defaultValue={["fuji", "fair_champion"]}
+              className="mb-8"
+            />
+            <Button type="submit" disabled={performAssessment.isPending} className="text-xl">
+              {performAssessment.isPending ? (
+                <span className="flex gap-2">
+                  <Loader noPadding size="5" />
+                  {m.assessingButton()}
+                </span>
+              ) : (
+                m.assessButton()
               )}
-            </Form>
-          </motion.div>
-          <AnimatePresence>
-            {assessmentId && !performAssessment.isPending && (
-              <motion.div
-                key={assessmentId}
-                layout="position"
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 24 }}
-                transition={{ type: "spring", stiffness: 260, damping: 26 }}
-                className=""
-              >
-                <AssessmentResults id={assessmentId} />
-              </motion.div>
+            </Button>
+
+            {errors.root && (
+              <p className="mt-4 text-sm text-red-500" role="alert">
+                {errors.root}
+              </p>
             )}
-          </AnimatePresence>
-        </div>
-      </MotionConfig>
-    </div>
+          </Form>
+        </motion.div>
+        <AnimatePresence>
+          {assessmentId && !performAssessment.isPending && (
+            <motion.div
+              key={assessmentId}
+              layout="position"
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 24 }}
+              transition={{ type: "spring", stiffness: 260, damping: 26 }}
+              className=""
+            >
+              <AssessmentResults id={assessmentId} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </MotionConfig>
   );
 }
 

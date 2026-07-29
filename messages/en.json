@@ -30,5 +30,10 @@
   "showDetails": "Show details",
   "hideDetails": "Hide details",
   "profile": "Profile: {profile}",
-  "passedCriteriaCount": "{passCount} of {total} criteria passed"
+  "passedCriteriaCount": "{passCount} of {total} criteria passed",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeSwitcherButton": "Switch theme to: {theme}",
+  "themeSwitcherButtonGroup": "Theme switcher, current theme: {theme}"
 }
