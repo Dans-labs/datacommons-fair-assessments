@@ -13,7 +13,7 @@ type InputProps =
 export function Input({ label, type, name, placeholder, className, ...props }: InputProps) {
   const isTextarea = type === "textarea";
   const sharedClass =
-    "outline-none px-3 py-3 w-full bg-transparent border-2 border-gray-800 dark:border-gray-500 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500";
+    "outline-none px-3 py-3 w-full bg-transparent border-2 border-slate-400 dark:border-slate-500 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500";
 
   return (
     <Field.Root className={`relative w-full group flex flex-col ${className ?? ""}`} name={name}>
