@@ -4,10 +4,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm i
 COPY . .
-
-ARG VITE_API
-ENV VITE_API=$VITE_API
-
 RUN npm run build
 
 # Stage 2: Run
