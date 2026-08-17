@@ -8,6 +8,8 @@ import type { QueryClient } from "@tanstack/react-query";
 import { ThemeProvider } from "#/components/ThemeProvider";
 import Header from "#/components/Header";
 import Footer from "#/components/Footer";
+import { getApiServerConfig } from "#/api/api-config";
+import { setApiBaseUrl } from "#/api/client";
 
 interface MyRouterContext {
   queryClient: QueryClient;
@@ -20,6 +22,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("lang", getLocale());
     }
+    const apiConfig = await getApiServerConfig();
+    setApiBaseUrl(apiConfig.baseUrl);
+    return { apiConfig };
   },
 
   head: () => ({
