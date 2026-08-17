@@ -6,10 +6,9 @@ Tanstack Start + TypeScript + Vite Plus application. Multilingual ready.
 
 Copy `.env.example` and fill in the values:
 
-| Variable   | Description                                        |
-| ---------- | -------------------------------------------------- |
-| `VITE_API` | Fair Assessment API base URL (for dynamic loading) |
-| `API`      | Fair Assessment API base URL (for SSR)             |
+| Variable | Description                            |
+| -------- | -------------------------------------- |
+| `API`    | Fair Assessment API base URL (for SSR) |
 
 For local development use `.env.development`, for production use `.env.production`.
 
@@ -46,19 +45,10 @@ vp build
 
 ## Docker
 
-Build the image, passing production env vars as build args:
+Build the image:
 
 ```bash
 docker build \
-  --build-arg VITE_API=https://your-api \
-  -t fair-assessments-ui .
-```
-
-If you have a populated `.env.production`, you can source it instead of typing values manually:
-
-```bash
-set -a && source .env.production && set +a && docker build \
-  --build-arg VITE_API \
   -t fair-assessments-ui .
 ```
 
