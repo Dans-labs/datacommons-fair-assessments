@@ -1,7 +1,7 @@
 {
   "homeHeader": "Perform automated FAIR assessments",
   "homeDescription": "Assess your dataset for FAIRness using the Data Commons FAIR Assessment Service. This service evaluates your dataset against a set of FAIR metrics and provides a score along with recommendations for improvement.",
-  "assessmentResultsHeader": "Assessment Results",
+  "assessmentResultsHeader": "Results",
   "assessmentResultsDescription": "The assessment has been completed. Below are the results of the FAIR assessment for your dataset.",
   "assessmentScore": "Assessment Score",
   "invalidUrl": "This is not a valid URL",

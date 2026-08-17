@@ -5,18 +5,25 @@ import { Form } from "@base-ui/react/form";
 import { Button } from "#/components/Button";
 import { useState } from "react";
 import { useAssessmentResults, usePerformAssessment } from "#/hooks/useAssessment";
-import type { Assessment } from "#/api/assessment";
+import { getAssessors, type Assessment } from "#/api/assessment";
 import { m } from "@/paraglide/messages";
 import Loader from "#/components/Loader";
 import { AssessmentResult } from "#/components/AssessmentResult";
 import { motion, AnimatePresence, MotionConfig } from "motion/react";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/")({
+  component: Home,
+  loader: async () => {
+    const assessors = await getAssessors();
+    return { fetchedAssessors: assessors };
+  },
+});
 
 function Home() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const performAssessment = usePerformAssessment();
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
+  const { fetchedAssessors } = Route.useLoaderData();
 
   return (
     <MotionConfig reducedMotion="user">
@@ -73,10 +80,11 @@ function Home() {
             <CheckboxGroup
               name="assessment-options"
               groupLabel={m.selectAssessments()}
-              items={[
-                { id: "fuji", label: "F-UJI", value: "fuji" },
-                { id: "fair_champion", label: "FAIR Champion", value: "fair_champion" },
-              ]}
+              items={fetchedAssessors.map((assessor) => ({
+                id: assessor.id,
+                label: assessor.name,
+                value: assessor.id,
+              }))}
               defaultValue={["fuji", "fair_champion"]}
               className="mb-8"
             />
@@ -166,13 +174,24 @@ function AssessmentResults({ id }: { id: string }) {
   }
 
   return (
-    <>
-      <div className="flex items-baseline justify-between mb-1">
+    <motion.div
+      variants={listVariants}
+      initial="hidden"
+      animate="show"
+      className="flex flex-col max-w-4xl"
+    >
+      <div className="flex items-baseline justify-between mb-1 gap-4">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
           {m.assessmentResultsHeader()}
         </h2>
-        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 flex gap-2 items-center">
           {data.results.length} assessor{data.results.length === 1 ? "" : "s"}
+          {data.status === "running" && (
+            <span className="flex gap-1 items-center">
+              <Loader noPadding size="4" />
+              {m.loading()}
+            </span>
+          )}
         </span>
       </div>
       <motion.div
@@ -182,11 +201,11 @@ function AssessmentResults({ id }: { id: string }) {
         className="grid grid-cols-1 xl:grid-cols-2 gap-4"
       >
         {data.results.map((result) => (
-          <motion.div key={result.assessor_id} variants={cardVariants}>
-            <AssessmentResult result={result} />
+          <motion.div key={result.assessor} variants={cardVariants}>
+            <AssessmentResult result={result} completed={data.status === "completed"} id={id} />
           </motion.div>
         ))}
       </motion.div>
-    </>
+    </motion.div>
   );
 }

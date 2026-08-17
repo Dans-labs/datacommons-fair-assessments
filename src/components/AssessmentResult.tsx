@@ -12,6 +12,7 @@ import {
   QuestionMarkCircleIcon,
   ChevronRightIcon,
 } from "@heroicons/react/20/solid";
+import { useGetAssessors, useRawAssessmentResults } from "#/hooks/useAssessment";
 
 // The `raw` field isn't in the snippet you shared, so it's typed defensively here.
 // If `AssessmentResult` already declares it, this extension is a no-op.
@@ -190,9 +191,17 @@ function CopyJsonButton({ value }: { value: string }) {
   );
 }
 
-export function AssessmentResult({ result }: { result: ResultWithRaw }) {
+export function AssessmentResult({
+  result,
+  completed,
+  id,
+}: {
+  result: ResultWithRaw;
+  completed: boolean;
+  id: string;
+}) {
   const [open, setOpen] = useState(false);
-  const normalised = (result.normalised ?? {}) as Record<string, unknown>;
+  const normalised = (result ?? {}) as Record<string, unknown>;
 
   const overall = typeof normalised.overall === "string" ? normalised.overall : undefined;
   const profile = typeof normalised.profile === "string" ? normalised.profile : undefined;
@@ -221,6 +230,11 @@ export function AssessmentResult({ result }: { result: ResultWithRaw }) {
   const total = leafEntries.length;
   const passRatio = total > 0 ? passCount / total : 0;
 
+  const { data: assessors } = useGetAssessors();
+  const { data: rawResults } = useRawAssessmentResults(id, completed);
+
+  const rawResult = rawResults?.results.find((r: any) => r.assessor === result.assessor);
+
   return (
     <div className="relative overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-800 shadow-sm">
       <div
@@ -230,7 +244,7 @@ export function AssessmentResult({ result }: { result: ResultWithRaw }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-xl font-bold text-slate-900 dark:text-white truncate">
-              {result.name}
+              {assessors?.find((a) => a.id === result.assessor)?.name}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {[profile && m.profile({ profile }), processStatus].filter(Boolean).join(" · ")}
@@ -340,13 +354,13 @@ export function AssessmentResult({ result }: { result: ResultWithRaw }) {
 
                 <Tabs.Panel value="raw" keepMounted>
                   <div className="flex justify-end mb-2">
-                    <CopyJsonButton value={JSON.stringify(result.raw)} />
+                    <CopyJsonButton value={JSON.stringify(rawResult ?? {})} />
                   </div>
                   <ScrollArea.Root className="h-80 rounded-lg dark:bg-[#0d1117] bg-white">
                     <ScrollArea.Viewport className="h-full">
                       <ScrollArea.Content className="p-2">
                         <JsonView
-                          value={result.raw}
+                          value={rawResult ?? {}}
                           displayDataTypes={false}
                           objectSortKeys={false}
                           shortenTextAfterLength={80}

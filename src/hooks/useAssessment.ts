@@ -1,5 +1,10 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { fetchAssessmentResults, performAssessment } from "#/api/assessment";
+import {
+  fetchAssessmentResults,
+  fetchRawAssessmentResults,
+  performAssessment,
+  getAssessors,
+} from "#/api/assessment";
 
 export function usePerformAssessment() {
   return useMutation({
@@ -12,5 +17,23 @@ export function useAssessmentResults(id: string) {
     queryKey: ["assessmentResults", id],
     queryFn: () => fetchAssessmentResults(id),
     enabled: !!id,
+    refetchInterval: (query) => {
+      return query.state.data?.status === "running" ? 5000 : false;
+    },
+  });
+}
+
+export function useGetAssessors() {
+  return useQuery({
+    queryKey: ["assessors"],
+    queryFn: getAssessors,
+  });
+}
+
+export function useRawAssessmentResults(id: string, enabled: boolean = true) {
+  return useQuery({
+    queryKey: ["rawAssessmentResults", id],
+    queryFn: () => fetchRawAssessmentResults(id),
+    enabled,
   });
 }
