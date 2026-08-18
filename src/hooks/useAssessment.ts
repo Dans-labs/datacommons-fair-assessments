@@ -4,6 +4,7 @@ import {
   fetchRawAssessmentResults,
   performAssessment,
   getAssessors,
+  fetchCachedAssessmentResults,
 } from "#/api/assessment";
 
 export function usePerformAssessment() {
@@ -36,4 +37,14 @@ export function useRawAssessmentResults(id: string, enabled: boolean = true) {
     queryFn: () => fetchRawAssessmentResults(id),
     enabled,
   });
+}
+
+export function cachedAssessmentResultsQuery(pid: string) {
+  return {
+    queryKey: ["cachedAssessmentResults", pid],
+    queryFn: () => fetchCachedAssessmentResults(pid),
+  };
+}
+export function useCachedAssessmentResults(pid: string) {
+  return useQuery(cachedAssessmentResultsQuery(pid));
 }

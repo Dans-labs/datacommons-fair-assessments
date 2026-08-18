@@ -195,17 +195,22 @@ export function AssessmentResult({
   result,
   completed,
   id,
+  date,
 }: {
   result: ResultWithRaw;
   completed: boolean;
   id: string;
+  date: string;
 }) {
   const [open, setOpen] = useState(false);
   const normalised = (result ?? {}) as Record<string, unknown>;
+  console.log(date, "date");
 
   const overall = typeof normalised.overall === "string" ? normalised.overall : undefined;
   const profile = typeof normalised.profile === "string" ? normalised.profile : undefined;
   const processStatus = typeof normalised.status === "string" ? normalised.status : undefined;
+  const version =
+    typeof normalised.assessor_version === "string" ? normalised.assessor_version : undefined;
 
   const META_KEYS = new Set(["assessor", "profile", "status", "overall"]);
   const scoreEntries = Object.entries(normalised).filter(
@@ -245,7 +250,13 @@ export function AssessmentResult({
           <div className="min-w-0">
             <h3 className="text-xl font-bold text-slate-900 dark:text-white truncate">
               {assessors?.find((a) => a.id === result.assessor)?.name}
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-2">
+                {version ? `v${version}` : ""}
+              </span>
             </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              {date ? m.assessmentDate({ date: new Date(date) }) : ""}
+            </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {[profile && m.profile({ profile }), processStatus].filter(Boolean).join(" · ")}
             </p>

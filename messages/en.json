@@ -12,7 +12,21 @@
   "selectAssessments": "Select Assessments",
   "selectAtLeastOneAssessment": "Select at least one assessment",
   "assessButton": "Assess!",
+  "assessFreshButton": "Assess again",
+  "cachedResultsNotice": "Cached results found for this PID. Hit the button below again to perform a new assessment and overwrite the cached results.",
   "assessingButton": "Assessing...",
+  "assessors": [
+    {
+      "declarations": ["input count", "input total", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} / {total} assessor",
+        "countPlural=other": "{count} / {total} assessors"
+      }
+    }
+  ],
+  "runningAssessment": "Running {name}...",
+  "assessmentDate": "Assessed on: {date}",
   "loading": "Loading...",
   "findable": "Findable",
   "accessible": "Accessible",

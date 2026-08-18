@@ -9,7 +9,7 @@ export type Assessment = "fuji" | "fair_champion";
 export type PerformAssessmentInput = {
   pid: string;
   mode?: AssessmentMode;
-  assessors: Assessment[];
+  assessors: string[];
 };
 export type AssessmentStatus = "pending" | "running" | "completed" | "failed"; // to check later on
 export type PerformAssessmentResponse = {
@@ -21,6 +21,7 @@ export type AssessmentResults = {
   pid: string;
   status: AssessmentStatus;
   results: AssessmentResult[];
+  completed_at: string;
 };
 export type AssessmentPass = "pass" | "fail" | "indeterminate" | "partial";
 export type AssessmentResult = {
@@ -28,6 +29,7 @@ export type AssessmentResult = {
   profile: Assessment;
   status: AssessmentStatus;
   overall: AssessmentPass;
+  assessor_version: string;
   f: AssessmentPass;
   a: AssessmentPass;
   i: AssessmentPass;
@@ -73,4 +75,8 @@ export function fetchRawAssessmentResults(
   id: string,
 ): Promise<Omit<AssessmentResults, "results"> & { results: any }> {
   return apiFetch(`/api/v1/assessments/${encodeURIComponent(id)}/raw`);
+}
+
+export function fetchCachedAssessmentResults(pid: string): Promise<AssessmentResults> {
+  return apiFetch(`/api/v1/assessments/latest?pid=${encodeURIComponent(pid)}`);
 }
