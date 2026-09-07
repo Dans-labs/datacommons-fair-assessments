@@ -49,5 +49,9 @@
   "themeLight": "Light",
   "themeDark": "Dark",
   "themeSwitcherButton": "Switch theme to: {theme}",
-  "themeSwitcherButtonGroup": "Theme switcher, current theme: {theme}"
+  "themeSwitcherButtonGroup": "Theme switcher, current theme: {theme}",
+  "offlineAssessment": "Offline Assessment",
+  "offlineAssessmentDescription": "Allows you to evaluate an unpublished dataset, by uploading your JSON LD metadata here.",
+  "onlineAssessment": "Online Assessment",
+  "onlineAssessmentDescription": "Allows you to evaluate a published dataset by providing its DOI URL."
 }

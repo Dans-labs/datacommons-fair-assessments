@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Input } from "#/components/Input";
+import { Input, Dropzone } from "#/components/Input";
 import { CheckboxGroup } from "#/components/Checkbox";
 import { Form } from "@base-ui/react/form";
 import { Button } from "#/components/Button";
@@ -24,6 +24,8 @@ export const Route = createFileRoute("/")({
   },
 });
 
+// TODO: split this into comps. Wire up offline assessment api. Allow for assessing online and offline at the same time. Allow for multiple file assessments. Get guidance from api on results.
+
 function Home() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [hasCached, setHasCached] = useState<boolean>(false);
@@ -31,7 +33,11 @@ function Home() {
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const { fetchedAssessors } = Route.useLoaderData();
   const [assessors, setAssessors] = useState<string[]>([]);
+  const [jsonData, setJsonData] = useState<string | null>(null);
+  const [url, setUrl] = useState<string>("");
   const queryClient = useQueryClient();
+
+  console.log(jsonData);
 
   return (
     <MotionConfig reducedMotion="user">
@@ -49,7 +55,7 @@ function Home() {
             className="min-w-0 shrink-0"
           >
             <Form
-              className="md:w-80 lg:w-100 max-w-screen bg-indigo-100 dark:bg-indigo-950 p-8 rounded-lg shadow-sm relative overflow-hidden"
+              className="md:w-160 lg:w-200 max-w-screen bg-indigo-100 dark:bg-indigo-950 p-8 rounded-lg shadow-sm relative overflow-hidden"
               errors={errors}
               onSubmit={async (event) => {
                 event.preventDefault();
@@ -98,41 +104,57 @@ function Home() {
               }}
             >
               <div className="h-1.5 w-full bg-indigo-500 dark:bg-indigo-600 absolute top-0 left-0" />
-              <Input
-                label={m.enterDoiUrl()}
-                name="url"
-                type="url"
-                pattern="https?://.*"
-                placeholder="https://doi.org/10.1234/example"
-                className="mb-6"
-              />
-              <CheckboxGroup
-                name="assessment-options"
-                groupLabel={m.selectAssessments()}
-                items={fetchedAssessors.map((assessor) => ({
-                  id: assessor.id,
-                  label: assessor.name,
-                  value: assessor.id,
-                }))}
-                defaultValue={["fuji", "fair_champion"]}
-                className="mb-8"
-              />
+              <div className="grid md:grid-cols-2 divide-y-2 md:divide-x-2 md:divide-y-0 divide-indigo-200 dark:divide-indigo-900 mb-8">
+                <div
+                  className={`md:pr-8 transition-opacity ${jsonData !== null ? "opacity-30 pointer-events-none" : ""}`}
+                >
+                  <h2>{m.onlineAssessment()}</h2>
+                  <p className="text-sm">{m.onlineAssessmentDescription()}</p>
+                  <Input
+                    name="url"
+                    type="url"
+                    pattern="https?://.*"
+                    placeholder="https://doi.org/10.1234/example"
+                    className="mb-6"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                  />
+                  <CheckboxGroup
+                    name="assessment-options"
+                    groupLabel={m.selectAssessments()}
+                    items={fetchedAssessors.map((assessor) => ({
+                      id: assessor.id,
+                      label: assessor.name,
+                      value: assessor.id,
+                    }))}
+                    defaultValue={["fuji", "fair_champion"]}
+                    className=""
+                  />
 
-              <AnimatePresence>
-                {hasCached && (
-                  <motion.div
-                    key="cached-results"
-                    layout="position"
-                    initial={{ opacity: 0, x: 24 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 24 }}
-                    transition={{ type: "spring", stiffness: 260, damping: 26 }}
-                    className="bg-green-600 text-white rounded-md px-4 py-3 mb-6 text-sm"
-                  >
-                    {m.cachedResultsNotice()}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  <AnimatePresence>
+                    {hasCached && (
+                      <motion.div
+                        key="cached-results"
+                        layout="position"
+                        initial={{ opacity: 0, x: 24 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 24 }}
+                        transition={{ type: "spring", stiffness: 260, damping: 26 }}
+                        className="bg-green-600 text-white rounded-md px-4 py-3 text-sm"
+                      >
+                        {m.cachedResultsNotice()}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <div
+                  className={`md:pl-8 transition-opacity ${url ? "opacity-30 pointer-events-none" : ""}`}
+                >
+                  <h2>{m.offlineAssessment()}</h2>
+                  <p className="text-sm">{m.offlineAssessmentDescription()}</p>
+                  <Dropzone onJsonLoaded={setJsonData} />
+                </div>
+              </div>
 
               <Button type="submit" disabled={performAssessment.isPending} className="text-xl">
                 {performAssessment.isPending ? (
