@@ -25,6 +25,7 @@
       }
     }
   ],
+  "assessorsLoadError": "Failed to load assessor options: {error}",
   "runningAssessment": "Running {name}...",
   "assessmentDate": "Assessed on: {date}",
   "loading": "Loading...",
@@ -50,8 +51,16 @@
   "themeDark": "Dark",
   "themeSwitcherButton": "Switch theme to: {theme}",
   "themeSwitcherButtonGroup": "Theme switcher, current theme: {theme}",
-  "offlineAssessment": "Offline Assessment",
+  "offlineAssessment": "Unpublished datasets",
   "offlineAssessmentDescription": "Allows you to evaluate an unpublished dataset, by uploading your JSON LD metadata here.",
-  "onlineAssessment": "Online Assessment",
-  "onlineAssessmentDescription": "Allows you to evaluate a published dataset by providing its DOI URL."
+  "onlineAssessment": "Published datasets",
+  "onlineAssessmentDescription": "Allows you to evaluate a published dataset by providing its DOI URL.",
+  "selectFiles": "Drag & drop or click to select JSON file(s)",
+  "dropFiles": "Drop here...",
+  "fileError": "Please select a valid JSON file.",
+  "fileReadAbort": "File reading was aborted",
+  "fileReadError": "File reading has failed",
+  "fileInvalidJson": "That file doesn't contain valid JSON",
+  "maxFilesReached": "You have reached the maximum number of files allowed ({maxFiles})",
+  "tooManyFilesSelected": "You have selected too many files. Only {maxFiles} are allowed."
 }

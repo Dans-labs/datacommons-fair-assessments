@@ -4,6 +4,7 @@ import { Input as BaseInput } from "@base-ui/react/input";
 import { useDropzone, type FileRejection } from "react-dropzone";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { useCallback, useState } from "react";
+import { m } from "@/paraglide/messages";
 
 type BaseProps = { label?: string };
 
@@ -42,67 +43,108 @@ export function Input({ label, type, name, placeholder, className, ...props }: I
   );
 }
 
+export type JsonWithFileName = { fileName: string; metadata: Record<string, unknown> };
+
 export function Dropzone({
   onJsonLoaded,
+  maxFiles = 1,
 }: {
-  onJsonLoaded: Dispatch<SetStateAction<string | null>>;
+  onJsonLoaded: Dispatch<SetStateAction<JsonWithFileName[] | null>>;
+  maxFiles?: number;
 }) {
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileNames, setFileNames] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const onDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
-      // Non-JSON (or otherwise rejected) file selected
-      if (fileRejections.length > 0) {
-        setFileName(null);
-        setError("Please select a valid JSON file.");
+      // Only treat "wrong file type" as a hard rejection. Dropzone's own maxFiles
+      // check only knows about this batch, not files added in earlier drops, so we
+      // don't trust its "too-many-files" rejections — we recompute that ourselves below.
+      const hasInvalidType = fileRejections.some((r) =>
+        r.errors.some((e) => e.code === "file-invalid-type"),
+      );
+
+      if (hasInvalidType) {
+        setError(m.fileError());
         return;
       }
 
-      const file = acceptedFiles[0];
-      if (!file) return;
+      const candidates = [
+        ...acceptedFiles,
+        ...fileRejections
+          .filter((r) => r.errors.every((e) => e.code !== "file-invalid-type"))
+          .map((r) => r.file),
+      ];
 
-      // New valid selection replaces whatever was there before
-      setError(null);
-      setFileName(file.name);
+      if (candidates.length === 0) return;
 
-      const reader = new FileReader();
+      const remainingSlots = maxFiles - fileNames.length;
 
-      reader.onabort = () => {
-        setError("File reading was aborted.");
-      };
+      // Already full: reject everything, distinct message, nothing gets read
+      if (remainingSlots <= 0) {
+        setError(m.maxFilesReached({ maxFiles }));
+        return;
+      }
 
-      reader.onerror = () => {
-        setError("File reading has failed.");
-      };
+      // Partial overflow: cut off the excess before any reading happens
+      const filesToProcess = candidates.slice(0, remainingSlots);
+      const wasTruncated = candidates.length > remainingSlots;
 
-      reader.onload = () => {
-        try {
-          const parsed = JSON.parse(reader.result as string);
-          onJsonLoaded(parsed);
-        } catch {
-          setError("That file doesn't contain valid JSON.");
-        }
-      };
+      setError(wasTruncated ? m.tooManyFilesSelected({ maxFiles }) : null);
 
-      reader.readAsText(file);
+      filesToProcess.forEach((file) => {
+        const reader = new FileReader();
+
+        reader.onabort = () => {
+          setError(m.fileReadAbort());
+        };
+
+        reader.onerror = () => {
+          setError(m.fileReadError());
+        };
+
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(reader.result as string);
+            const withFileName: JsonWithFileName = {
+              metadata: { ...parsed },
+              fileName: file.name,
+            };
+
+            setFileNames((prev) => [...prev, file.name]);
+            onJsonLoaded((prev) => [...(prev ?? []), withFileName]);
+          } catch {
+            setError(m.fileInvalidJson());
+          }
+        };
+
+        reader.readAsText(file);
+      });
     },
-    [onJsonLoaded],
+    [onJsonLoaded, maxFiles, fileNames.length],
   );
 
   const { isDragActive, getRootProps, getInputProps } = useDropzone({
-    maxFiles: 1,
+    maxFiles,
     onDrop,
     accept: { "application/json": [] },
+    disabled: fileNames.length >= maxFiles,
   });
 
   const handleClear = useCallback(
-    (event: React.MouseEvent) => {
-      // Prevent the click from bubbling to the dropzone and reopening the file picker
+    (event: React.MouseEvent, name?: string) => {
       event.stopPropagation();
-      setFileName(null);
+      if (name) {
+        setFileNames((prev) => prev.filter((n) => n !== name));
+        onJsonLoaded((prev) => {
+          const next = prev?.filter((j) => j.fileName !== name) ?? [];
+          return next.length > 0 ? next : null;
+        });
+      } else {
+        setFileNames([]);
+        onJsonLoaded(null);
+      }
       setError(null);
-      onJsonLoaded(null);
     },
     [onJsonLoaded],
   );
@@ -112,29 +154,36 @@ export function Dropzone({
       <div
         {...getRootProps()}
         className={`
-          border-2 border-dashed rounded-lg p-3 text-center cursor-pointer
-          hover:border-indigo-500
+          border-2 border-dashed rounded-lg p-3
           transition-colors duration-200
+          ${fileNames.length >= maxFiles ? "cursor-not-allowed" : "cursor-pointer hover:border-indigo-500"}
           ${isDragActive ? "border-indigo-500" : "border-slate-400 dark:border-slate-500"}
         `}
       >
         <input {...getInputProps()} />
-        {fileName ? (
-          <span className="inline-flex items-center gap-1.5">
-            <span className="font-medium">{fileName}</span>
-            <button
-              type="button"
-              onClick={handleClear}
-              aria-label="Clear selected file"
-              className="text-slate-500  hover:text-red-700 dark:text-slate-400 transition-colors cursor-pointer"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </span>
+        {fileNames.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {fileNames.map((name) => (
+              <span key={name} className="flex w-full items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={(e) => handleClear(e, name)}
+                  aria-label="Clear selected file"
+                  className="text-slate-500 hover:text-red-700 dark:text-slate-400 transition-colors cursor-pointer"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+                <span className="font-medium">{name}</span>
+              </span>
+            ))}
+          </div>
         ) : isDragActive ? (
-          <span className="opacity-50">Drop here ...</span>
+          <span className="opacity-50">{m.dropFiles()}</span>
         ) : (
-          <span className="opacity-50">Drag and drop or click to select JSON file</span>
+          <span className="opacity-50">{m.selectFiles()}</span>
+        )}
+        {fileNames.length >= maxFiles && (
+          <p className="text-slate-500 text-xs mt-1 mb-0">{m.maxFilesReached({ maxFiles })}</p>
         )}
       </div>
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}

@@ -21,7 +21,11 @@ async function ensureBaseUrl(): Promise<string> {
   return configPromise;
 }
 
-export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+export async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {},
+  ignore404 = false,
+): Promise<T> {
   const url = await ensureBaseUrl();
   if (!url) {
     throw new Error("API base URL not configured — setApiBaseUrl() must run before apiFetch()");
@@ -34,7 +38,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   const res = await fetch(`${url}${path}`, { ...options, headers });
 
-  if (!res.ok) {
+  if (!res.ok && !(ignore404 && res.status === 404)) {
     const body = await res.text();
     throw new Error(`${res.status} ${res.statusText}: ${body}`);
   }

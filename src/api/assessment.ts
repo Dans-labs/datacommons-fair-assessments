@@ -11,6 +11,9 @@ export type PerformAssessmentInput = {
   mode?: AssessmentMode;
   assessors: string[];
 };
+export type PerformOfflineAssessmentInput = {
+  metadata: Record<string, any>;
+};
 export type AssessmentStatus = "pending" | "running" | "completed" | "failed"; // to check later on
 export type PerformAssessmentResponse = {
   id: string;
@@ -62,7 +65,6 @@ export function performAssessment({
 }: PerformAssessmentInput): Promise<PerformAssessmentResponse> {
   return apiFetch("/api/v1/assessments/", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ pid, mode, assessors }),
   });
 }
@@ -78,5 +80,14 @@ export function fetchRawAssessmentResults(
 }
 
 export function fetchCachedAssessmentResults(pid: string): Promise<AssessmentResults> {
-  return apiFetch(`/api/v1/assessments/latest?pid=${encodeURIComponent(pid)}`);
+  return apiFetch(`/api/v1/assessments/latest?pid=${encodeURIComponent(pid)}`, {}, true);
+}
+
+export function performOfflineAssessment({
+  metadata,
+}: PerformOfflineAssessmentInput): Promise<PerformAssessmentResponse> {
+  return apiFetch("/api/v1/assessments/offline/", {
+    method: "POST",
+    body: JSON.stringify({ metadata }),
+  });
 }

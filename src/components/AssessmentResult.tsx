@@ -3,7 +3,7 @@ import { Collapsible } from "@base-ui/react/collapsible";
 import { Tabs } from "@base-ui/react/tabs";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import JsonView from "@uiw/react-json-view";
-import type { AssessmentResult as AssessmentResultType } from "#/api/assessment";
+import type { AssessmentResult as AssessmentResultType, Assessor } from "#/api/assessment";
 import { m } from "@/paraglide/messages";
 import {
   CheckCircleIcon,
@@ -12,7 +12,13 @@ import {
   QuestionMarkCircleIcon,
   ChevronRightIcon,
 } from "@heroicons/react/20/solid";
-import { useGetAssessors, useRawAssessmentResults } from "#/hooks/useAssessment";
+import {
+  useGetAssessors,
+  useRawAssessmentResults,
+  useAssessmentResults,
+} from "#/hooks/useAssessment";
+import Loader from "#/components/Loader";
+import { motion, AnimatePresence } from "motion/react";
 
 // The `raw` field isn't in the snippet you shared, so it's typed defensively here.
 // If `AssessmentResult` already declares it, this extension is a no-op.
@@ -388,6 +394,133 @@ export function AssessmentResult({
           </Collapsible.Panel>
         </Collapsible.Root>
       </div>
+    </div>
+  );
+}
+
+const listVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08 } },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
+};
+
+export function AssessmentResults({
+  id,
+  assessors,
+  fetchedAssessors,
+}: {
+  id: string;
+  assessors: string[];
+  fetchedAssessors: Assessor[];
+}) {
+  const { data, isLoading, error } = useAssessmentResults(id);
+
+  if (isLoading) {
+    return (
+      <motion.div
+        variants={listVariants}
+        initial="hidden"
+        animate="show"
+        className="w-full flex justify-center"
+      >
+        <motion.p variants={cardVariants} className="mt-2 flex gap-2">
+          <Loader noPadding /> {m.loading()}
+        </motion.p>
+      </motion.div>
+    );
+  }
+
+  if (error) {
+    return (
+      <motion.div
+        variants={listVariants}
+        initial="hidden"
+        animate="show"
+        className="w-full flex justify-center"
+      >
+        <motion.p variants={cardVariants} className="mt-2 text-red-500" role="alert">
+          {m.errorHeader()}: {error instanceof Error ? error.message : m.errorDescription()}
+        </motion.p>
+      </motion.div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return (
+    <motion.div
+      variants={listVariants}
+      initial="hidden"
+      animate="show"
+      className="flex flex-col w-full xl:max-w-4xl"
+    >
+      <div className="flex items-baseline justify-between mb-1 gap-4">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+          {m.assessmentResultsHeader()}
+        </h2>
+        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 flex gap-2 items-center">
+          {m.assessors({ count: data.results.length, total: assessors.length })}
+          {data.status === "running" && (
+            <span className="flex gap-1 items-center">
+              <Loader noPadding size="4" />
+              {m.loading()}
+            </span>
+          )}
+        </span>
+      </div>
+      <motion.div
+        variants={listVariants}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
+      >
+        <AnimatePresence mode="popLayout">
+          {assessors.map((assessor) => {
+            const result = data.results.find((r) => r.assessor === assessor);
+
+            return (
+              <motion.div
+                key={assessor}
+                layout
+                variants={cardVariants}
+                initial="hidden"
+                animate="show"
+                exit={{ opacity: 0, scale: 0.95 }}
+              >
+                {result ? (
+                  <AssessmentResult
+                    result={result}
+                    completed={data.status === "completed"}
+                    id={id}
+                    date={data.completed_at}
+                  />
+                ) : (
+                  <AssessmentPlaceholder
+                    assessor={fetchedAssessors.find((a) => a.id === assessor)!}
+                  />
+                )}
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function AssessmentPlaceholder({ assessor }: { assessor: Assessor }) {
+  return (
+    <div className="flex h-full min-h-35 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed dark:border-slate-800 border-slate-50 p-6 text-center">
+      <Loader />
+      <p className="text-sm text-muted-foreground">
+        {m.runningAssessment({ name: assessor.name })}
+      </p>
     </div>
   );
 }
