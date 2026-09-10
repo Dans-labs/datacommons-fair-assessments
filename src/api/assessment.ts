@@ -19,6 +19,13 @@ export type PerformAssessmentResponse = {
   id: string;
   status: AssessmentStatus;
 };
+export type PerformOfflineAssessmentResponse = {
+  id: string;
+  status: AssessmentStatus;
+  assessor: string;
+  assessor_version: string;
+  cells: Record<string, any>;
+};
 export type AssessmentResults = {
   id: string;
   pid: string;
@@ -53,6 +60,7 @@ export type AssessmentResult = {
   r1_2: AssessmentPass;
   r1_3: AssessmentPass;
 };
+export type JsonWithFileName = { fileName: string; metadata: Record<string, unknown> };
 
 export function getAssessors(): Promise<Assessor[]> {
   return apiFetch("/api/v1/assessors/");
@@ -69,8 +77,8 @@ export function performAssessment({
   });
 }
 
-export function fetchAssessmentResults(id: string): Promise<AssessmentResults> {
-  return apiFetch(`/api/v1/assessments/${encodeURIComponent(id)}`);
+export function fetchAssessmentResults(id?: string | null): Promise<AssessmentResults> {
+  return apiFetch(`/api/v1/assessments/${encodeURIComponent(id ?? "")}`);
 }
 
 export function fetchRawAssessmentResults(
@@ -85,8 +93,8 @@ export function fetchCachedAssessmentResults(pid: string): Promise<AssessmentRes
 
 export function performOfflineAssessment({
   metadata,
-}: PerformOfflineAssessmentInput): Promise<PerformAssessmentResponse> {
-  return apiFetch("/api/v1/assessments/offline/", {
+}: JsonWithFileName): Promise<PerformOfflineAssessmentResponse> {
+  return apiFetch("/api/v1/assessments/offline", {
     method: "POST",
     body: JSON.stringify({ metadata }),
   });

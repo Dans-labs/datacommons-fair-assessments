@@ -5,8 +5,7 @@ import { Button } from "#/components/Button";
 import Loader from "#/components/Loader";
 import { AssessmentResults } from "../AssessmentResult";
 import { m } from "@/paraglide/messages";
-import type { JsonWithFileName } from "#/components/Input";
-import type { Assessor } from "#/api/assessment";
+import type { Assessor, JsonWithFileName } from "#/api/assessment";
 import { useAssessmentSubmit } from "#/hooks/useAssessmentSubmit";
 import { OnlineAssessment } from "./AssessmentOnline";
 import { OfflineAssessment } from "./AssessmentOffline";
@@ -20,10 +19,15 @@ export function AssessmentForm({
 }) {
   const [url, setUrl] = useState<string>("");
   const [jsonData, setJsonData] = useState<JsonWithFileName[] | null>(null);
-  const { submit, errors, hasCached, assessmentId, assessors, performAssessment } =
-    useAssessmentSubmit();
-
-  console.log(jsonData);
+  const {
+    submit,
+    errors,
+    hasCached,
+    assessmentId,
+    assessors,
+    performAssessment,
+    offlineAssessments,
+  } = useAssessmentSubmit();
 
   return (
     <MotionConfig reducedMotion="user">
@@ -44,7 +48,7 @@ export function AssessmentForm({
               const formData = new FormData(event.currentTarget);
               const pid = formData.get("url") as string;
               const selectedAssessors = formData.getAll("assessment-options") as string[];
-              await submit(pid, selectedAssessors);
+              await submit(pid, selectedAssessors, jsonData);
             }}
           >
             <div className="h-1.5 w-full bg-indigo-500 dark:bg-indigo-600 absolute top-0 left-0" />
@@ -77,19 +81,20 @@ export function AssessmentForm({
             </Button>
 
             {errors.root && (
-              <p className="mt-4 text-sm text-red-500" role="alert">
+              <p className="mt-4 text-sm text-red-500 w-full mb-0 text-center" role="alert">
                 {errors.root}
               </p>
             )}
           </Form>
         </motion.div>
         <AnimatePresence>
-          {assessmentId && !performAssessment.isPending && (
+          {((assessmentId && !performAssessment.isPending) || offlineAssessments?.length > 0) && (
             <AssessmentResults
-              key={assessmentId}
+              key={assessmentId || "results"}
               id={assessmentId}
               assessors={assessors}
               fetchedAssessors={fetchedAssessors}
+              offlineAssessments={offlineAssessments}
             />
           )}
         </AnimatePresence>

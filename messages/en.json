@@ -2,6 +2,7 @@
   "homeHeader": "Perform automated FAIR assessments",
   "homeDescription": "Assess your dataset for FAIRness using the Data Commons FAIR Assessment Service. This service evaluates your dataset against a set of FAIR metrics and provides a score along with recommendations for improvement.",
   "assessmentResultsHeader": "Results",
+  "offlineAssessmentResultsHeader": "Unpublished Assessment Results",
   "assessmentResultsDescription": "The assessment has been completed. Below are the results of the FAIR assessment for your dataset.",
   "assessmentScore": "Assessment Score",
   "invalidUrl": "This is not a valid URL",
@@ -62,5 +63,8 @@
   "fileReadError": "File reading has failed",
   "fileInvalidJson": "That file doesn't contain valid JSON",
   "maxFilesReached": "You have reached the maximum number of files allowed ({maxFiles})",
-  "tooManyFilesSelected": "You have selected too many files. Only {maxFiles} are allowed."
+  "tooManyFilesSelected": "You have selected too many files. Only {maxFiles} are allowed",
+  "provideUrlOrJson": "Please provide either a DOI URL or a JSON file",
+  "someOfflineAssessmentsFailed": "Some unpublished metadata assessments failed",
+  "fileName": "File name: {fileName}"
 }

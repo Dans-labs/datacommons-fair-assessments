@@ -202,15 +202,16 @@ export function AssessmentResult({
   completed,
   id,
   date,
+  fileName,
 }: {
   result: ResultWithRaw;
   completed: boolean;
-  id: string;
-  date: string;
+  id?: string | null;
+  date?: string;
+  fileName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const normalised = (result ?? {}) as Record<string, unknown>;
-  console.log(date, "date");
 
   const overall = typeof normalised.overall === "string" ? normalised.overall : undefined;
   const profile = typeof normalised.profile === "string" ? normalised.profile : undefined;
@@ -241,7 +242,11 @@ export function AssessmentResult({
   const total = leafEntries.length;
   const passRatio = total > 0 ? passCount / total : 0;
 
+  // TODO/TEMP add offline id and name to fetched assessors in API?
   const { data: assessors } = useGetAssessors();
+  const enrichedAssessors = assessors
+    ? [...assessors, { id: "offline", name: "Offline" }]
+    : [{ id: "offline", name: "Offline" }];
   const { data: rawResults } = useRawAssessmentResults(id, completed);
 
   const rawResult = rawResults?.results.find((r: any) => r.assessor === result.assessor);
@@ -255,13 +260,17 @@ export function AssessmentResult({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-xl font-bold text-slate-900 dark:text-white truncate">
-              {assessors?.find((a) => a.id === result.assessor)?.name}
+              {enrichedAssessors?.find((a) => a.id === result.assessor)?.name}
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-2">
                 {version ? `v${version}` : ""}
               </span>
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              {date ? m.assessmentDate({ date: new Date(date) }) : ""}
+              {date
+                ? m.assessmentDate({ date: new Date(date) })
+                : fileName
+                  ? m.fileName({ fileName })
+                  : ""}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {[profile && m.profile({ profile }), processStatus].filter(Boolean).join(" · ")}
@@ -412,12 +421,14 @@ export function AssessmentResults({
   id,
   assessors,
   fetchedAssessors,
+  offlineAssessments,
 }: {
-  id: string;
+  id?: string | null;
   assessors: string[];
   fetchedAssessors: Assessor[];
+  offlineAssessments: { fileName: string; result: any }[];
 }) {
-  const { data, isLoading, error } = useAssessmentResults(id);
+  const { data, isLoading, error } = useAssessmentResults(id, !!id);
 
   if (isLoading) {
     return (
@@ -427,9 +438,9 @@ export function AssessmentResults({
         animate="show"
         className="w-full flex justify-center"
       >
-        <motion.p variants={cardVariants} className="mt-2 flex gap-2">
+        <motion.div variants={cardVariants} className="mt-2 flex gap-2">
           <Loader noPadding /> {m.loading()}
-        </motion.p>
+        </motion.div>
       </motion.div>
     );
   }
@@ -449,7 +460,7 @@ export function AssessmentResults({
     );
   }
 
-  if (!data) {
+  if (!data && offlineAssessments.length === 0) {
     return null;
   }
 
@@ -460,56 +471,95 @@ export function AssessmentResults({
       animate="show"
       className="flex flex-col w-full xl:max-w-4xl"
     >
-      <div className="flex items-baseline justify-between mb-1 gap-4">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-          {m.assessmentResultsHeader()}
-        </h2>
-        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 flex gap-2 items-center">
-          {m.assessors({ count: data.results.length, total: assessors.length })}
-          {data.status === "running" && (
-            <span className="flex gap-1 items-center">
-              <Loader noPadding size="4" />
-              {m.loading()}
-            </span>
-          )}
-        </span>
-      </div>
-      <motion.div
-        variants={listVariants}
-        initial="hidden"
-        animate="show"
-        className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
-      >
-        <AnimatePresence mode="popLayout">
-          {assessors.map((assessor) => {
-            const result = data.results.find((r) => r.assessor === assessor);
+      {data && [
+        <div className="flex items-baseline justify-between mb-1 gap-4" key="header">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+            {m.assessmentResultsHeader()}
+          </h2>
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 flex gap-2 items-center">
+            {m.assessors({ count: data.results.length, total: assessors.length })}
+            {data.status === "running" && (
+              <span className="flex gap-1 items-center">
+                <Loader noPadding size="4" />
+                {m.loading()}
+              </span>
+            )}
+          </span>
+        </div>,
+        <motion.div
+          variants={listVariants}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-6"
+          key="results"
+        >
+          <AnimatePresence mode="popLayout">
+            {assessors.map((assessor) => {
+              const result = data.results.find((r) => r.assessor === assessor);
 
-            return (
-              <motion.div
-                key={assessor}
-                layout
-                variants={cardVariants}
-                initial="hidden"
-                animate="show"
-                exit={{ opacity: 0, scale: 0.95 }}
-              >
-                {result ? (
+              return (
+                <motion.div
+                  key={assessor}
+                  layout
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="show"
+                  exit={{ opacity: 0, scale: 0.95 }}
+                >
+                  {result ? (
+                    <AssessmentResult
+                      result={result}
+                      completed={data.status === "completed"}
+                      id={id}
+                      date={data.completed_at}
+                    />
+                  ) : (
+                    <AssessmentPlaceholder
+                      assessor={fetchedAssessors.find((a) => a.id === assessor)!}
+                    />
+                  )}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </motion.div>,
+      ]}
+      {offlineAssessments?.length > 0 && [
+        <div className="flex items-baseline justify-between mb-1 gap-4" key="header">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+            {m.offlineAssessmentResultsHeader()}
+          </h2>
+        </div>,
+        <motion.div
+          variants={listVariants}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
+          key="results"
+        >
+          <AnimatePresence mode="popLayout">
+            {offlineAssessments.map((assessment) => {
+              return (
+                <motion.div
+                  key={assessment.fileName}
+                  layout
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="show"
+                  exit={{ opacity: 0, scale: 0.95 }}
+                >
                   <AssessmentResult
-                    result={result}
-                    completed={data.status === "completed"}
-                    id={id}
-                    date={data.completed_at}
+                    result={assessment.result}
+                    completed={false}
+                    id={null}
+                    fileName={assessment.fileName}
                   />
-                ) : (
-                  <AssessmentPlaceholder
-                    assessor={fetchedAssessors.find((a) => a.id === assessor)!}
-                  />
-                )}
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </motion.div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </motion.div>,
+      ]}
     </motion.div>
   );
 }

@@ -1,4 +1,5 @@
 import type { InputHTMLAttributes, Dispatch, SetStateAction } from "react";
+import type { JsonWithFileName } from "#/api/assessment";
 import { Field } from "@base-ui/react/field";
 import { Input as BaseInput } from "@base-ui/react/input";
 import { useDropzone, type FileRejection } from "react-dropzone";
@@ -42,8 +43,6 @@ export function Input({ label, type, name, placeholder, className, ...props }: I
     </Field.Root>
   );
 }
-
-export type JsonWithFileName = { fileName: string; metadata: Record<string, unknown> };
 
 export function Dropzone({
   onJsonLoaded,
@@ -127,7 +126,7 @@ export function Dropzone({
   const { isDragActive, getRootProps, getInputProps } = useDropzone({
     maxFiles,
     onDrop,
-    accept: { "application/json": [] },
+    accept: { "application/json": [".json"], "application/ld+json": [".jsonld"] },
     disabled: fileNames.length >= maxFiles,
   });
 

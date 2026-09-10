@@ -5,6 +5,7 @@ import {
   performAssessment,
   getAssessors,
   fetchCachedAssessmentResults,
+  performOfflineAssessment,
 } from "#/api/assessment";
 
 export function usePerformAssessment() {
@@ -13,11 +14,17 @@ export function usePerformAssessment() {
   });
 }
 
-export function useAssessmentResults(id: string) {
+export function usePerformOfflineAssessment() {
+  return useMutation({
+    mutationFn: performOfflineAssessment,
+  });
+}
+
+export function useAssessmentResults(id?: string | null, enabled: boolean = true) {
   return useQuery({
     queryKey: ["assessmentResults", id],
     queryFn: () => fetchAssessmentResults(id),
-    enabled: !!id,
+    enabled,
     refetchInterval: (query) => {
       return query.state.data?.status === "running" ? 5000 : false;
     },
@@ -31,11 +38,11 @@ export function useGetAssessors() {
   });
 }
 
-export function useRawAssessmentResults(id: string, enabled: boolean = true) {
+export function useRawAssessmentResults(id?: string | null, enabled: boolean = true) {
   return useQuery({
     queryKey: ["rawAssessmentResults", id],
-    queryFn: () => fetchRawAssessmentResults(id),
-    enabled,
+    queryFn: () => fetchRawAssessmentResults(id!),
+    enabled: enabled && Boolean(id),
   });
 }
 
