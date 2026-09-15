@@ -25,6 +25,7 @@ export type PerformOfflineAssessmentResponse = {
   assessor: string;
   assessor_version: string;
   cells: Record<string, any>;
+  guidance: Record<string, any>;
 };
 export type AssessmentResults = {
   id: string;

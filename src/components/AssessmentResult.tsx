@@ -19,12 +19,24 @@ import {
 } from "#/hooks/useAssessment";
 import Loader from "#/components/Loader";
 import { motion, AnimatePresence } from "motion/react";
+import { GuidanceTooltip } from "./Tooltip";
 
 // The `raw` field isn't in the snippet you shared, so it's typed defensively here.
 // If `AssessmentResult` already declares it, this extension is a no-op.
 type ResultWithRaw = AssessmentResultType & { raw?: unknown };
+export type ResultGuidance = {
+  assessor: string;
+  cell: string;
+  description: string;
+  message: string;
+  guidance: string[];
+  outcome: string;
+};
 
-const STATUS_STYLES: Record<string, { badge: string; bar: string; icon: string; label: string }> = {
+export const STATUS_STYLES: Record<
+  string,
+  { badge: string; bar: string; icon: string; label: string }
+> = {
   pass: {
     badge:
       "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700",
@@ -78,13 +90,19 @@ const STATUS_ICONS = {
   indeterminate: QuestionMarkCircleIcon,
 } as const;
 
-function StatusIcon({ status, className = "w-4 h-4" }: { status: string; className?: string }) {
+export function StatusIcon({
+  status,
+  className = "w-4 h-4",
+}: {
+  status: string;
+  className?: string;
+}) {
   const Icon =
     STATUS_ICONS[status.toLowerCase() as keyof typeof STATUS_ICONS] ?? QuestionMarkCircleIcon;
   return <Icon className={className} aria-hidden="true" />;
 }
 
-function StatusBadge({ status, size = "md" }: { status: string; size?: "sm" | "md" }) {
+export function StatusBadge({ status, size = "md" }: { status: string; size?: "sm" | "md" }) {
   const style = statusStyle(status);
   const sizing = size === "sm" ? "text-xs px-2 py-0.5 gap-1" : "text-sm px-3 py-1 gap-1.5";
   return (
@@ -104,13 +122,13 @@ const DIMENSIONS = [
   { key: "r", label: "R", full: m.reusable() },
 ] as const;
 
-type ScoreNode = { key: string; status: string; children: ScoreNode[] };
+type ScoreNode = { key: string; status: string; children: ScoreNode[]; guidance?: ResultGuidance };
 
 /**
  * Turns a flat set of keys like f1, a1, a1_1, a1_2, a2 into a tree based on
  * underscore-prefix matching (a1_1's parent is a1, a1's parent is none, etc).
  */
-function buildHierarchy(entries: [string, string][]): ScoreNode[] {
+function buildHierarchy(entries: [string, string][], guidance?: ResultGuidance[]): ScoreNode[] {
   const keys = entries.map(([key]) => key);
   const nodes = new Map<string, ScoreNode>(
     entries.map(([key, status]) => [key, { key, status, children: [] }]),
@@ -125,10 +143,12 @@ function buildHierarchy(entries: [string, string][]): ScoreNode[] {
       }
     }
     const node = nodes.get(key)!;
+    const guidanceForNode = guidance?.find((k) => k.cell === key);
+
     if (parentKey) {
-      nodes.get(parentKey)!.children.push(node);
+      nodes.get(parentKey)!.children.push({ ...node, guidance: guidanceForNode });
     } else {
-      roots.push(node);
+      roots.push({ ...node, guidance: guidanceForNode });
     }
   }
 
@@ -156,7 +176,11 @@ function ScoreTree({ nodes, depth = 0 }: { nodes: ScoreNode[]; depth?: number })
     >
       {nodes.map((node) => (
         <li key={node.key}>
-          <div className="flex items-center justify-between gap-3 py-1">
+          <GuidanceTooltip
+            node={formatKeyLabel(node.key)}
+            guidance={node.guidance}
+            className="flex w-full items-center justify-between gap-3 py-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors rounded-xl"
+          >
             <span className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
               <StatusIcon
                 status={node.status}
@@ -167,7 +191,7 @@ function ScoreTree({ nodes, depth = 0 }: { nodes: ScoreNode[]; depth?: number })
               </span>
             </span>
             <StatusBadge status={node.status} size="sm" />
-          </div>
+          </GuidanceTooltip>
           {node.children.length > 0 && <ScoreTree nodes={node.children} depth={depth + 1} />}
         </li>
       ))}
@@ -203,12 +227,14 @@ export function AssessmentResult({
   id,
   date,
   fileName,
+  guidance,
 }: {
   result: ResultWithRaw;
   completed: boolean;
   id?: string | null;
   date?: string;
   fileName?: string;
+  guidance?: ResultGuidance[];
 }) {
   const [open, setOpen] = useState(false);
   const normalised = (result ?? {}) as Record<string, unknown>;
@@ -230,7 +256,7 @@ export function AssessmentResult({
     return {
       ...dim,
       status: typeof dimStatus === "string" ? dimStatus : undefined,
-      tree: buildHierarchy(children),
+      tree: buildHierarchy(children, guidance),
     };
   });
   const hasCompass = dimensions.some((d) => d.status);
@@ -426,7 +452,7 @@ export function AssessmentResults({
   id?: string | null;
   assessors: string[];
   fetchedAssessors: Assessor[];
-  offlineAssessments: { fileName: string; result: any }[];
+  offlineAssessments: { fileName: string; result: any; guidance?: any }[];
 }) {
   const { data, isLoading, error } = useAssessmentResults(id, !!id);
 
@@ -550,6 +576,7 @@ export function AssessmentResults({
                 >
                   <AssessmentResult
                     result={assessment.result}
+                    guidance={assessment.guidance}
                     completed={false}
                     id={null}
                     fileName={assessment.fileName}

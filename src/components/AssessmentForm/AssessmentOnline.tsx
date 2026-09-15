@@ -10,12 +10,14 @@ export function OnlineAssessment({
   fetchedAssessors,
   hasCached,
   assessorsError,
+  hasResults,
 }: {
   url: string;
   onUrlChange: (value: string) => void;
   fetchedAssessors: Assessor[];
   hasCached: boolean;
   assessorsError?: string | null;
+  hasResults: boolean;
 }) {
   return (
     <div className="sm:pr-8 pb-4 sm:pb-0">
@@ -29,6 +31,7 @@ export function OnlineAssessment({
         className="mb-6"
         value={url}
         onChange={(e) => onUrlChange(e.target.value)}
+        disabled={hasResults}
       />
       {assessorsError ? (
         <p className="text-red-500 text-sm" role="alert">
@@ -44,6 +47,7 @@ export function OnlineAssessment({
             value: assessor.id,
           }))}
           defaultValue={["fuji", "fair_champion"]}
+          disabled={hasResults}
         />
       )}
 

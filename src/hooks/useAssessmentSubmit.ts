@@ -85,16 +85,21 @@ export function useAssessmentSubmit() {
               assessor_version: result.assessor_version,
               ...result.cells,
             },
+            guidance: result.guidance,
           })),
         ),
       );
 
-      const succeeded: { fileName: string; result: any }[] = [];
+      const succeeded: { fileName: string; result: any; guidance: any }[] = [];
       const failed: { fileName: string; reason: unknown }[] = [];
 
       outcomes.forEach((outcome, i) => {
         if (outcome.status === "fulfilled") {
-          succeeded.push({ fileName: outcome.value.fileName, result: outcome.value.result });
+          succeeded.push({
+            fileName: outcome.value.fileName,
+            result: outcome.value.result,
+            guidance: outcome.value.guidance,
+          });
         } else {
           failed.push({ fileName: jsonData[i].fileName, reason: outcome.reason });
         }
@@ -122,6 +127,13 @@ export function useAssessmentSubmit() {
     }
   };
 
+  const reset = () => {
+    setAssessmentId(null);
+    setHasCached(false);
+    setOfflineAssessments([]);
+    setErrors({});
+  };
+
   return {
     submit,
     errors,
@@ -130,5 +142,6 @@ export function useAssessmentSubmit() {
     assessors,
     performAssessment,
     offlineAssessments,
+    reset,
   };
 }

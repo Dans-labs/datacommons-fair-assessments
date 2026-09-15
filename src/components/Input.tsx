@@ -4,7 +4,7 @@ import { Field } from "@base-ui/react/field";
 import { Input as BaseInput } from "@base-ui/react/input";
 import { useDropzone, type FileRejection } from "react-dropzone";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { m } from "@/paraglide/messages";
 
 type BaseProps = { label?: string };
@@ -15,10 +15,17 @@ type InputProps =
       type?: Exclude<React.HTMLInputTypeAttribute, "textarea">;
     } & React.InputHTMLAttributes<HTMLInputElement>);
 
-export function Input({ label, type, name, placeholder, className, ...props }: InputProps) {
+export function Input({
+  label,
+  type,
+  name,
+  placeholder,
+  className,
+  disabled,
+  ...props
+}: InputProps) {
   const isTextarea = type === "textarea";
-  const sharedClass =
-    "outline-none px-3 py-3 w-full bg-transparent border-2 border-slate-400 dark:border-slate-500 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500";
+  const sharedClass = `outline-none px-3 py-3 w-full bg-transparent border-2 border-slate-400 dark:border-slate-500 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 ${disabled ? "opacity-50 pointer-events-none" : ""}`;
 
   return (
     <Field.Root className={`relative w-full group flex flex-col ${className ?? ""}`} name={name}>
@@ -47,9 +54,13 @@ export function Input({ label, type, name, placeholder, className, ...props }: I
 export function Dropzone({
   onJsonLoaded,
   maxFiles = 1,
+  disabled = false,
+  jsonData,
 }: {
   onJsonLoaded: Dispatch<SetStateAction<JsonWithFileName[] | null>>;
   maxFiles?: number;
+  disabled?: boolean;
+  jsonData?: JsonWithFileName[] | null;
 }) {
   const [fileNames, setFileNames] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -148,6 +159,14 @@ export function Dropzone({
     [onJsonLoaded],
   );
 
+  useEffect(() => {
+    if (jsonData) {
+      setFileNames(jsonData.map((j) => j.fileName));
+    } else {
+      setFileNames([]);
+    }
+  }, [jsonData]);
+
   return (
     <div>
       <div
@@ -157,6 +176,7 @@ export function Dropzone({
           transition-colors duration-200
           ${fileNames.length >= maxFiles ? "cursor-not-allowed" : "cursor-pointer hover:border-indigo-500"}
           ${isDragActive ? "border-indigo-500" : "border-slate-400 dark:border-slate-500"}
+          ${disabled ? "opacity-50 pointer-events-none" : ""}
         `}
       >
         <input {...getInputProps()} />

@@ -66,5 +66,7 @@
   "tooManyFilesSelected": "You have selected too many files. Only {maxFiles} are allowed",
   "provideUrlOrJson": "Please provide either a DOI URL or a JSON file",
   "someOfflineAssessmentsFailed": "Some unpublished metadata assessments failed",
-  "fileName": "File name: {fileName}"
+  "fileName": "File name: {fileName}",
+  "guidance": "What does this mean?",
+  "noGuidance": "No guidance available."
 }

@@ -22,18 +22,23 @@ export function CheckboxGroup({
   items,
   defaultValue = [],
   className = "",
+  disabled = false,
 }: {
   name: string;
   groupLabel: string;
   items: CheckboxItem[];
   defaultValue?: string[];
   className?: string;
+  disabled?: boolean;
 }) {
   return (
     <Field.Root name={name} className={`relative ${className}`}>
       <Fieldset.Root>
         <Fieldset.Legend className="mb-2 font-bold">{groupLabel}</Fieldset.Legend>
-        <BaseCheckboxGroup defaultValue={defaultValue} className="flex flex-col gap-2">
+        <BaseCheckboxGroup
+          defaultValue={defaultValue}
+          className={`flex flex-col gap-2 ${disabled ? "opacity-50 pointer-events-none" : ""}`}
+        >
           {items.map((item) => (
             <label
               key={item.id}
