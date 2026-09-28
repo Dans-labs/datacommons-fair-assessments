@@ -20,12 +20,8 @@ export type PerformAssessmentResponse = {
   status: AssessmentStatus;
 };
 export type PerformOfflineAssessmentResponse = {
-  id: string;
-  status: AssessmentStatus;
-  assessor: string;
-  assessor_version: string;
-  cells: Record<string, any>;
-  guidance: Record<string, any>;
+  fileName?: string;
+  result: AssessmentResult;
 };
 export type AssessmentResults = {
   id: string;
@@ -34,8 +30,41 @@ export type AssessmentResults = {
   results: AssessmentResult[];
   completed_at: string;
 };
+export type Guidance = {
+  assessor: string;
+  cell: string;
+  test: string;
+  description: string;
+  message: string | null;
+  outcome: AssessmentPass;
+};
+export type Scores = {
+  f: number | null;
+  a: number | null;
+  i: number | null;
+  r: number | null;
+  overall: number | null;
+};
+export type DetailedScores = {
+  f1: AssessmentPass;
+  f2: AssessmentPass;
+  f3: AssessmentPass;
+  f4: AssessmentPass;
+  a1: AssessmentPass;
+  a1_1: AssessmentPass;
+  a1_2: AssessmentPass;
+  a2: AssessmentPass;
+  i1: AssessmentPass;
+  i2: AssessmentPass;
+  i3: AssessmentPass;
+  r1: AssessmentPass;
+  r1_1: AssessmentPass;
+  r1_2: AssessmentPass;
+  r1_3: AssessmentPass;
+};
 export type AssessmentPass = "pass" | "fail" | "indeterminate" | "partial";
 export type AssessmentResult = {
+  fileName?: string;
   assessor: Assessment;
   profile: Assessment;
   status: AssessmentStatus;
@@ -60,6 +89,13 @@ export type AssessmentResult = {
   r1_1: AssessmentPass;
   r1_2: AssessmentPass;
   r1_3: AssessmentPass;
+  // TODO harmonize this
+  profile_ref: string;
+  error: any;
+  guidance: Guidance[];
+  scored: Scores;
+  scores: Scores;
+  cells: DetailedScores;
 };
 export type JsonWithFileName = { fileName: string; metadata: Record<string, unknown> };
 
@@ -79,7 +115,7 @@ export function performAssessment({
 }
 
 export function fetchAssessmentResults(id?: string | null): Promise<AssessmentResults> {
-  return apiFetch(`/api/v1/assessments/${encodeURIComponent(id ?? "")}`);
+  return apiFetch(`/api/v1/assessments/${encodeURIComponent(id ?? "")}/results`);
 }
 
 export function fetchRawAssessmentResults(

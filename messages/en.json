@@ -68,5 +68,6 @@
   "someOfflineAssessmentsFailed": "Some unpublished metadata assessments failed",
   "fileName": "File name: {fileName}",
   "guidance": "What does this mean?",
-  "noGuidance": "No guidance available."
+  "noGuidance": "No guidance available.",
+  "allPassed": "Perfect score!"
 }

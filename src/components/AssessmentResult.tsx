@@ -3,7 +3,11 @@ import { Collapsible } from "@base-ui/react/collapsible";
 import { Tabs } from "@base-ui/react/tabs";
 import { ScrollArea } from "@base-ui/react/scroll-area";
 import JsonView from "@uiw/react-json-view";
-import type { AssessmentResult as AssessmentResultType, Assessor } from "#/api/assessment";
+import type {
+  AssessmentResult as AssessmentResultType,
+  Assessor,
+  Guidance,
+} from "#/api/assessment";
 import { m } from "@/paraglide/messages";
 import {
   CheckCircleIcon,
@@ -24,14 +28,6 @@ import { GuidanceTooltip } from "./Tooltip";
 // The `raw` field isn't in the snippet you shared, so it's typed defensively here.
 // If `AssessmentResult` already declares it, this extension is a no-op.
 type ResultWithRaw = AssessmentResultType & { raw?: unknown };
-export type ResultGuidance = {
-  assessor: string;
-  cell: string;
-  description: string;
-  message: string;
-  guidance: string[];
-  outcome: string;
-};
 
 export const STATUS_STYLES: Record<
   string,
@@ -74,13 +70,9 @@ const FALLBACK_STYLE = {
   icon: "text-slate-400",
 };
 
-function capitalize(value: string) {
-  return value.length ? value[0].toUpperCase() + value.slice(1) : value;
-}
-
-function statusStyle(status: string) {
-  const style = STATUS_STYLES[status.toLowerCase()];
-  return style ?? { ...FALLBACK_STYLE, label: capitalize(status) || "Unknown" };
+function statusStyle(status?: string) {
+  const style = status ? STATUS_STYLES[status.toLowerCase()] : undefined;
+  return style ?? { ...FALLBACK_STYLE, label: status || "Unknown" };
 }
 
 const STATUS_ICONS = {
@@ -115,6 +107,14 @@ export function StatusBadge({ status, size = "md" }: { status: string; size?: "s
   );
 }
 
+// Still pretty random. Todo.
+function scoreToStatus(score: number | null) {
+  if (!score) return "indeterminate";
+  if (score === 100) return "pass";
+  if (score >= 1) return "partial";
+  return "fail";
+}
+
 const DIMENSIONS = [
   { key: "f", label: "F", full: m.findable() },
   { key: "a", label: "A", full: m.accessible() },
@@ -122,13 +122,13 @@ const DIMENSIONS = [
   { key: "r", label: "R", full: m.reusable() },
 ] as const;
 
-type ScoreNode = { key: string; status: string; children: ScoreNode[]; guidance?: ResultGuidance };
+type ScoreNode = { key: string; status: string; children: ScoreNode[]; guidance?: Guidance };
 
 /**
  * Turns a flat set of keys like f1, a1, a1_1, a1_2, a2 into a tree based on
  * underscore-prefix matching (a1_1's parent is a1, a1's parent is none, etc).
  */
-function buildHierarchy(entries: [string, string][], guidance?: ResultGuidance[]): ScoreNode[] {
+function buildHierarchy(entries: [string, string][], guidance?: Guidance[]): ScoreNode[] {
   const keys = entries.map(([key]) => key);
   const nodes = new Map<string, ScoreNode>(
     entries.map(([key, status]) => [key, { key, status, children: [] }]),
@@ -227,46 +227,26 @@ export function AssessmentResult({
   id,
   date,
   fileName,
-  guidance,
 }: {
   result: ResultWithRaw;
   completed: boolean;
   id?: string | null;
   date?: string;
   fileName?: string;
-  guidance?: ResultGuidance[];
 }) {
   const [open, setOpen] = useState(false);
-  const normalised = (result ?? {}) as Record<string, unknown>;
-
-  const overall = typeof normalised.overall === "string" ? normalised.overall : undefined;
-  const profile = typeof normalised.profile === "string" ? normalised.profile : undefined;
-  const processStatus = typeof normalised.status === "string" ? normalised.status : undefined;
-  const version =
-    typeof normalised.assessor_version === "string" ? normalised.assessor_version : undefined;
-
-  const META_KEYS = new Set(["assessor", "profile", "status", "overall"]);
-  const scoreEntries = Object.entries(normalised).filter(
-    (entry): entry is [string, string] => !META_KEYS.has(entry[0]) && typeof entry[1] === "string",
-  );
 
   const dimensions = DIMENSIONS.map((dim) => {
-    const dimStatus = normalised[dim.key];
-    const children = scoreEntries.filter(([key]) => new RegExp(`^${dim.key}\\d`).test(key));
+    const dimStatus = result.scores[dim.key];
+    const children = Object.entries(result.cells).filter(([key]) =>
+      new RegExp(`^${dim.key}\\d`).test(key),
+    );
     return {
       ...dim,
       status: typeof dimStatus === "string" ? dimStatus : undefined,
-      tree: buildHierarchy(children, guidance),
+      tree: buildHierarchy(children, result.guidance),
     };
   });
-  const hasCompass = dimensions.some((d) => d.status);
-
-  // Only count leaf/sub-criteria (e.g. f1, a1_2) toward the ratio, not the
-  // aggregate f/a/i/r/overall scores, to avoid double-counting.
-  const leafEntries = scoreEntries.filter(([key]) => /^[a-z]+\d/i.test(key));
-  const passCount = leafEntries.filter(([, status]) => status.toLowerCase() === "pass").length;
-  const total = leafEntries.length;
-  const passRatio = total > 0 ? passCount / total : 0;
 
   // TODO/TEMP add offline id and name to fetched assessors in API?
   const { data: assessors } = useGetAssessors();
@@ -279,16 +259,14 @@ export function AssessmentResult({
 
   return (
     <div className="relative overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-800 shadow-sm">
-      <div
-        className={`h-1.5 w-full ${overall ? statusStyle(overall).bar : "bg-slate-300 dark:bg-slate-600"}`}
-      />
+      <div className="h-1.5 w-full bg-slate-300 dark:bg-slate-600" />
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-xl font-bold text-slate-900 dark:text-white truncate">
               {enrichedAssessors?.find((a) => a.id === result.assessor)?.name}
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-2">
-                {version ? `v${version}` : ""}
+                {result.assessor_version ? `v${result.assessor_version}` : ""}
               </span>
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
@@ -299,52 +277,45 @@ export function AssessmentResult({
                   : ""}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {[profile && m.profile({ profile }), processStatus].filter(Boolean).join(" · ")}
+              {[result.profile_ref && m.profile({ profile: result.profile_ref }), result.status]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
           </div>
-          {overall && <StatusBadge status={overall} />}
         </div>
 
-        {total > 0 && (
-          <div className="mt-3">
-            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-              <span>{m.passedCriteriaCount({ passCount, total })}</span>
-              <span>{Math.round(passRatio * 100)}%</span>
-            </div>
-            <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-indigo-500 dark:bg-indigo-400 transition-all duration-500"
-                style={{ width: `${passRatio * 100}%` }}
-              />
-            </div>
+        <div className="mt-3">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+            <span>
+              {m.passedCriteriaCount({
+                passCount: result.scored.overall || 0,
+                total: Object.keys(result.cells).length,
+              })}
+            </span>
+            <span>{Math.round(result.scores.overall || 0)}%</span>
           </div>
-        )}
+          <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-indigo-500 dark:bg-indigo-400 transition-all duration-500"
+              style={{ width: `${result.scores.overall || 0}%` }}
+            />
+          </div>
+        </div>
 
-        {hasCompass && (
-          <div className="grid grid-cols-4 gap-2 mt-4">
-            {dimensions.map((dim) =>
-              dim.status ? (
-                <div
-                  key={dim.key}
-                  title={dim.full}
-                  className={`rounded-lg border px-2 py-2 text-center ${statusStyle(dim.status).badge}`}
-                >
-                  <div className="text-lg font-black leading-none">{dim.label}</div>
-                  <div className="text-[10px] font-medium uppercase tracking-wide opacity-80 mt-1 truncate">
-                    {dim.full}
-                  </div>
-                </div>
-              ) : (
-                <div
-                  key={dim.key}
-                  className="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 px-2 py-2 text-center text-slate-300 dark:text-slate-600"
-                >
-                  <div className="text-lg font-black leading-none">{dim.label}</div>
-                </div>
-              ),
-            )}
-          </div>
-        )}
+        <div className="grid grid-cols-4 gap-2 mt-4">
+          {dimensions.map((dim) => (
+            <div
+              key={dim.key}
+              title={dim.full}
+              className={`rounded-lg border px-2 py-2 text-center ${statusStyle(scoreToStatus(result.scores[dim.key])).badge}`}
+            >
+              <div className="text-lg font-black leading-none">{dim.label}</div>
+              <div className="text-[10px] font-medium uppercase tracking-wide opacity-80 mt-1 truncate">
+                {dim.full}
+              </div>
+            </div>
+          ))}
+        </div>
 
         <Collapsible.Root open={open} onOpenChange={setOpen} className="mt-4">
           <Collapsible.Trigger className="flex items-center gap-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-100 transition-colors cursor-pointer">
@@ -385,7 +356,7 @@ export function AssessmentResult({
                           <div key={dim.key}>
                             <div className="flex items-center gap-2 mb-1">
                               <span
-                                className={`text-xs font-bold px-1.5 py-0.5 rounded ${statusStyle(dim.status ?? "indeterminate").badge}`}
+                                className={`text-xs font-bold px-1.5 py-0.5 rounded ${statusStyle(scoreToStatus(result.scores[dim.key])).badge}`}
                               >
                                 {dim.label}
                               </span>
@@ -455,6 +426,8 @@ export function AssessmentResults({
   offlineAssessments: { fileName: string; result: any; guidance?: any }[];
 }) {
   const { data, isLoading, error } = useAssessmentResults(id, !!id);
+
+  console.log(offlineAssessments);
 
   if (isLoading) {
     return (
@@ -576,7 +549,6 @@ export function AssessmentResults({
                 >
                   <AssessmentResult
                     result={assessment.result}
-                    guidance={assessment.guidance}
                     completed={false}
                     id={null}
                     fileName={assessment.fileName}

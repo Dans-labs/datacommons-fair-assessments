@@ -16,11 +16,14 @@ export function Button({ children, className, render, variant, ...rest }: Button
         px-3 md:px-4 
         py-2 
         rounded-lg
-        ${variant === "outline" ? "bg-transparent border-2 border-indigo-500 text-indigo-500 hover:bg-indigo-500 hover:text-white" : "bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white"}
+        ${
+          variant === "outline"
+            ? "bg-transparent border-2 border-indigo-500 text-indigo-500 hover:bg-indigo-500 hover:text-white"
+            : "bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white"
+        }
         transition-colors
         duration-300
         font-bold
-        text-white 
         cursor-pointer
         disabled:bg-gray-400 
         disabled:cursor-not-allowed 

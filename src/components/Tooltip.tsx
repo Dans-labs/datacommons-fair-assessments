@@ -1,6 +1,7 @@
 import { Popover } from "@base-ui/react/popover";
 import { m } from "@/paraglide/messages";
-import { STATUS_STYLES, StatusIcon, type ResultGuidance } from "./AssessmentResult";
+import { STATUS_STYLES, StatusIcon } from "./AssessmentResult";
+import type { Guidance } from "#/api/assessment";
 
 export default function TooltipComponent({
   children,
@@ -56,7 +57,7 @@ export function GuidanceTooltip({
   className,
 }: {
   node: string;
-  guidance: ResultGuidance | undefined;
+  guidance: Guidance | undefined;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -69,9 +70,11 @@ export function GuidanceTooltip({
         className={`${STATUS_STYLES[guidance.outcome].badge} border-1 px-2 py-1 rounded-xl mb-1 flex gap-2 items-center`}
       >
         <StatusIcon status={guidance.outcome} />
-        <span className="flex-1">{guidance.message}</span>
+        <span className="flex-1">
+          {guidance.message || (guidance.outcome === "pass" ? m.allPassed() : "")}
+        </span>
       </p>
-      {guidance.guidance.length > 0
+      {/* {guidance.guidance.length > 0
         ? [
             <h3 className="text-sm mb-1 mt-4">How to improve?</h3>,
             guidance.guidance.map((g, index) => (
@@ -80,7 +83,7 @@ export function GuidanceTooltip({
               </p>
             )),
           ]
-        : null}
+        : null} */}
     </div>
   ) : (
     <div className="text-sm *:leading-snug">

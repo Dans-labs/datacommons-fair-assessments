@@ -80,17 +80,12 @@ export function useAssessmentSubmit() {
         jsonData.map((item) =>
           performOfflineAssessment.mutateAsync({ ...item }).then((result) => ({
             fileName: item.fileName,
-            result: {
-              assessor: result.assessor,
-              assessor_version: result.assessor_version,
-              ...result.cells,
-            },
-            guidance: result.guidance,
+            result,
           })),
         ),
       );
 
-      const succeeded: { fileName: string; result: any; guidance: any }[] = [];
+      const succeeded: { fileName: string; result: any }[] = [];
       const failed: { fileName: string; reason: unknown }[] = [];
 
       outcomes.forEach((outcome, i) => {
@@ -98,7 +93,6 @@ export function useAssessmentSubmit() {
           succeeded.push({
             fileName: outcome.value.fileName,
             result: outcome.value.result,
-            guidance: outcome.value.guidance,
           });
         } else {
           failed.push({ fileName: jsonData[i].fileName, reason: outcome.reason });
