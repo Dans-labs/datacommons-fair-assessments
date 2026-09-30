@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  usePerformAssessment,
-  cachedAssessmentResultsQuery,
-  usePerformOfflineAssessment,
-} from "#/hooks/useAssessment";
+import { usePerformAssessment, cachedAssessmentResultsQuery } from "#/hooks/useAssessment";
 import { m } from "@/paraglide/messages";
 import type { JsonWithFileName } from "#/api/assessment";
 
@@ -17,7 +13,6 @@ export function useAssessmentSubmit() {
     [],
   );
   const performAssessment = usePerformAssessment();
-  const performOfflineAssessment = usePerformOfflineAssessment();
   const queryClient = useQueryClient();
 
   const submit = async (
@@ -56,64 +51,46 @@ export function useAssessmentSubmit() {
 
     const runErrors: Record<string, string> = {};
 
-    if (hasUrl) {
-      try {
-        const cachedResults = await queryClient.query(cachedAssessmentResultsQuery(trimmedPid));
-        if (cachedResults.results?.length && !hasCached) {
-          setAssessmentId(cachedResults.id);
-          setHasCached(true);
-        } else {
-          setHasCached(false);
+    try {
+      const cachedResults = await queryClient.query(cachedAssessmentResultsQuery(trimmedPid));
+      if (cachedResults.results?.length && !hasCached) {
+        setAssessmentId(cachedResults.id);
+        setHasCached(true);
+        if (hasJson) {
           const result = await performAssessment.mutateAsync({
-            pid: trimmedPid,
-            assessors: selectedAssessors,
+            pid: jsonData[0].fileName,
+            assessors: ["offline"],
+            metadata: jsonData[0],
           });
-          setAssessmentId(result.id);
+          setOfflineAssessments([{ fileName: jsonData[0].fileName, result: result.offline }]);
         }
-      } catch (err) {
-        runErrors.root = err instanceof Error ? err.message : m.genericError();
-      }
-    }
-
-    if (hasJson && jsonData) {
-      const outcomes = await Promise.allSettled(
-        jsonData.map((item) =>
-          performOfflineAssessment.mutateAsync({ ...item }).then((result) => ({
-            fileName: item.fileName,
-            result,
-          })),
-        ),
-      );
-
-      const succeeded: { fileName: string; result: any }[] = [];
-      const failed: { fileName: string; reason: unknown }[] = [];
-
-      outcomes.forEach((outcome, i) => {
-        if (outcome.status === "fulfilled") {
-          succeeded.push({
-            fileName: outcome.value.fileName,
-            result: outcome.value.result,
-          });
-        } else {
-          failed.push({ fileName: jsonData[i].fileName, reason: outcome.reason });
+      } else {
+        setHasCached(false);
+        const assessors =
+          hasJson && hasUrl
+            ? [...selectedAssessors, "offline"]
+            : hasUrl
+              ? selectedAssessors
+              : hasJson
+                ? ["offline"]
+                : [];
+        if (assessors.length === 0) {
+          runErrors["assessment-options"] = m.selectAtLeastOneAssessment();
+          setErrors(runErrors);
+          return;
         }
-      });
-
-      if (succeeded.length > 0) {
-        setOfflineAssessments(succeeded);
+        const result = await performAssessment.mutateAsync({
+          pid: hasUrl ? trimmedPid : (jsonData?.[0].fileName ?? ""),
+          assessors: assessors,
+          metadata: hasJson ? jsonData[0].metadata : undefined,
+        });
+        if (hasJson) {
+          setOfflineAssessments([{ fileName: jsonData[0].fileName, result: result.offline }]);
+        }
+        setAssessmentId(result.id);
       }
-
-      if (failed.length > 0) {
-        const message =
-          failed.length === jsonData.length
-            ? m.genericError()
-            : m.someOfflineAssessmentsFailed({ count: failed.length, total: jsonData.length });
-        runErrors.root = message;
-        console.error(
-          "Offline assessment failures:",
-          failed.map((f) => `${f.fileName}: ${f.reason}`),
-        );
-      }
+    } catch (err) {
+      runErrors.root = err instanceof Error ? err.message : m.genericError();
     }
 
     if (Object.keys(runErrors).length > 0) {

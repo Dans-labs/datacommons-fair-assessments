@@ -33,6 +33,9 @@ export function AssessmentForm({
   const hasResults =
     (assessmentId && !performAssessment.isPending) || offlineAssessments?.length > 0;
 
+  const offlineAssessmentsEnabled =
+    fetchedAssessors.filter((ass) => ass.id === "offline").length > 0;
+
   return (
     <MotionConfig reducedMotion="user">
       <div
@@ -58,21 +61,23 @@ export function AssessmentForm({
           >
             <div className="h-1.5 w-full bg-indigo-500 dark:bg-indigo-600 absolute top-0 left-0" />
             <div
-              className={`grid sm:grid-cols-2 divide-y-2 sm:divide-x-2 sm:divide-y-0 divide-indigo-200 dark:divide-indigo-900 mb-8 w-full`}
+              className={`${offlineAssessmentsEnabled ? "grid sm:grid-cols-2 divide-y-2 sm:divide-x-2 sm:divide-y-0 divide-indigo-200 dark:divide-indigo-900" : ""} mb-8 w-full`}
             >
               <OnlineAssessment
                 url={url}
                 onUrlChange={setUrl}
-                fetchedAssessors={fetchedAssessors}
+                fetchedAssessors={fetchedAssessors.filter((ass) => ass.id !== "offline")}
                 hasCached={hasCached}
                 assessorsError={assessorsError}
                 hasResults={hasResults}
               />
-              <OfflineAssessment
-                onJsonLoaded={setJsonData}
-                jsonData={jsonData}
-                hasResults={hasResults}
-              />
+              {offlineAssessmentsEnabled && (
+                <OfflineAssessment
+                  onJsonLoaded={setJsonData}
+                  jsonData={jsonData}
+                  hasResults={hasResults}
+                />
+              )}
             </div>
 
             <div className="flex justify-center gap-2">

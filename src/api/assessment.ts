@@ -5,23 +5,18 @@ export type Assessor = {
   name: string;
 };
 export type AssessmentMode = "public" | "private";
-export type Assessment = "fuji" | "fair_champion";
+export type Assessment = "fuji" | "fair_champion" | "offline";
 export type PerformAssessmentInput = {
-  pid: string;
+  pid?: string;
   mode?: AssessmentMode;
   assessors: string[];
-};
-export type PerformOfflineAssessmentInput = {
-  metadata: Record<string, any>;
+  metadata?: Record<string, any>;
 };
 export type AssessmentStatus = "pending" | "running" | "completed" | "failed"; // to check later on
 export type PerformAssessmentResponse = {
   id: string;
   status: AssessmentStatus;
-};
-export type PerformOfflineAssessmentResponse = {
-  fileName?: string;
-  result: AssessmentResult;
+  offline?: AssessmentResult;
 };
 export type AssessmentResults = {
   id: string;
@@ -107,10 +102,11 @@ export function performAssessment({
   pid,
   mode = "public",
   assessors,
+  metadata,
 }: PerformAssessmentInput): Promise<PerformAssessmentResponse> {
   return apiFetch("/api/v1/assessments/", {
     method: "POST",
-    body: JSON.stringify({ pid, mode, assessors }),
+    body: JSON.stringify({ pid, mode, assessors, metadata }),
   });
 }
 
@@ -126,13 +122,4 @@ export function fetchRawAssessmentResults(
 
 export function fetchCachedAssessmentResults(pid: string): Promise<AssessmentResults> {
   return apiFetch(`/api/v1/assessments/latest?pid=${encodeURIComponent(pid)}`, {}, true);
-}
-
-export function performOfflineAssessment({
-  metadata,
-}: JsonWithFileName): Promise<PerformOfflineAssessmentResponse> {
-  return apiFetch("/api/v1/assessments/offline", {
-    method: "POST",
-    body: JSON.stringify({ metadata }),
-  });
 }
