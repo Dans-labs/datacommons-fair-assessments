@@ -82,7 +82,7 @@ export function useAssessmentSubmit() {
         const result = await performAssessment.mutateAsync({
           pid: hasUrl ? trimmedPid : (jsonData?.[0].fileName ?? ""),
           assessors: assessors,
-          metadata: hasJson ? jsonData[0] : undefined,
+          metadata: hasJson ? jsonData[0].metadata : undefined,
         });
         if (hasJson) {
           setOfflineAssessments([{ fileName: jsonData[0].fileName, result: result.offline }]);
