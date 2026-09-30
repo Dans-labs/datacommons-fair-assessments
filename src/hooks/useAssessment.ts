@@ -5,18 +5,11 @@ import {
   performAssessment,
   getAssessors,
   fetchCachedAssessmentResults,
-  performOfflineAssessment,
 } from "#/api/assessment";
 
 export function usePerformAssessment() {
   return useMutation({
     mutationFn: performAssessment,
-  });
-}
-
-export function usePerformOfflineAssessment() {
-  return useMutation({
-    mutationFn: performOfflineAssessment,
   });
 }
 
