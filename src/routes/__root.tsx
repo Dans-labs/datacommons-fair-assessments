@@ -68,12 +68,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="bg-linear-to-b from-slate-50 to-slate-200 dark:from-slate-950 dark:to-slate-900 min-h-screen flex flex-col">
         <ThemeProvider>
-          <div className="flex flex-col align-stretch min-h-screen">
-            <Header />
-            {children}
-          </div>
+          <Header />
+          {children}
           <Footer />
         </ThemeProvider>
         <TanStackDevtools

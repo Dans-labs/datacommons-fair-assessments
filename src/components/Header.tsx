@@ -4,6 +4,11 @@ export default function Header() {
   return (
     <header className="bg-linear-to-b from-slate-300 to-slate-200 dark:from-slate-900 dark:to-slate-800 text-black dark:text-white">
       <div className="mx-auto w-180 max-w-full px-8 py-8">
+        <img
+          src="/logos/datacommons-logo-white.svg"
+          alt="EOSC DataCommons"
+          className="mb-3 max-w-full w-50"
+        />
         <h1 className="text-4xl font-bold">{m.homeHeader()}</h1>
         <p className="text-slate-800 dark:text-slate-300 mb-0">{m.homeDescription()}</p>
       </div>

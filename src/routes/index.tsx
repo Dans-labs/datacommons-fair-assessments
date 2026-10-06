@@ -21,10 +21,7 @@ function Home() {
   const { fetchedAssessors, assessorsError } = Route.useLoaderData();
 
   return (
-    <div
-      className="flex-1 flex p-4 md:p-8
-      bg-linear-to-b from-slate-50 to-slate-200 dark:from-slate-950 dark:to-slate-900"
-    >
+    <div className="flex-1 flex p-4 md:p-8">
       <AssessmentForm fetchedAssessors={fetchedAssessors} assessorsError={assessorsError} />
     </div>
   );
