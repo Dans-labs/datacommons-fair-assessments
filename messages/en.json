@@ -53,7 +53,8 @@
   "themeSwitcherButton": "Switch theme to: {theme}",
   "themeSwitcherButtonGroup": "Theme switcher, current theme: {theme}",
   "offlineAssessment": "Unpublished datasets",
-  "offlineAssessmentDescription": "Allows you to evaluate an unpublished dataset, by uploading your JSON LD metadata here.",
+  "offlineAssessmentDescription": "Allows you to evaluate an unpublished dataset, by uploading your JSON LD metadata here...",
+  "offlineAssessmentExternalUrl": "...or specifying an external URL to your JSON LD metadata",
   "onlineAssessment": "Published datasets",
   "onlineAssessmentDescription": "Allows you to evaluate a published dataset by providing its DOI URL.",
   "selectFiles": "Drag & drop or click to select JSON file(s)",
@@ -69,5 +70,6 @@
   "fileName": "File name: {fileName}",
   "guidance": "What does this mean?",
   "noGuidance": "No guidance available.",
-  "allPassed": "Perfect score!"
+  "allPassed": "Perfect score!",
+  "fetch": "Fetch"
 }

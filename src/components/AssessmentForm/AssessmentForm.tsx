@@ -53,7 +53,6 @@ export function AssessmentForm({
             onSubmit={async (event) => {
               event.preventDefault();
               const formData = new FormData(event.currentTarget);
-              console.log(formData.get("url"));
               const pid = formData.get("url") as string;
               const selectedAssessors = formData.getAll("assessment-options") as string[];
               await submit(pid, selectedAssessors, jsonData);

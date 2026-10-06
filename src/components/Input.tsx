@@ -25,7 +25,7 @@ export function Input({
   ...props
 }: InputProps) {
   const isTextarea = type === "textarea";
-  const sharedClass = `outline-none px-3 py-3 w-full bg-transparent border-2 border-slate-400 dark:border-slate-500 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 ${disabled ? "opacity-50 pointer-events-none" : ""}`;
+  const sharedClass = `outline-none px-3 py-3 w-full bg-transparent border-2 border-slate-400 dark:border-slate-500 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 ${disabled ? "opacity-50 pointer-events-none cursor-not-allowed" : ""}`;
 
   return (
     <Field.Root className={`relative w-full group flex flex-col ${className ?? ""}`} name={name}>

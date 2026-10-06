@@ -5,6 +5,7 @@ import {
   performAssessment,
   getAssessors,
   fetchCachedAssessmentResults,
+  fetchExternalURL,
 } from "#/api/assessment";
 
 export function usePerformAssessment() {
@@ -47,4 +48,10 @@ export function cachedAssessmentResultsQuery(pid: string) {
 }
 export function useCachedAssessmentResults(pid: string) {
   return useQuery(cachedAssessmentResultsQuery(pid));
+}
+
+export function useFetchExternalURL() {
+  return useMutation({
+    mutationFn: (url: string) => fetchExternalURL(url),
+  });
 }

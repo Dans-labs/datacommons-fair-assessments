@@ -427,8 +427,6 @@ export function AssessmentResults({
 }) {
   const { data, isLoading, error } = useAssessmentResults(id, !!id);
 
-  console.log(offlineAssessments);
-
   if (isLoading) {
     return (
       <motion.div

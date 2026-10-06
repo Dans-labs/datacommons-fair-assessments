@@ -123,3 +123,7 @@ export function fetchRawAssessmentResults(
 export function fetchCachedAssessmentResults(pid: string): Promise<AssessmentResults> {
   return apiFetch(`/api/v1/assessments/latest?pid=${encodeURIComponent(pid)}`, {}, true);
 }
+
+export function fetchExternalURL(url: string): Promise<string> {
+  return apiFetch(`/api/v1/retrieve?url=${encodeURIComponent(url)}`, {}, true);
+}
