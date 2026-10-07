@@ -288,7 +288,7 @@ export function AssessmentResult({
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>
               {m.passedCriteriaCount({
-                passCount: result.scored.overall || 0,
+                passCount: Object.values(result.cells).filter((cell) => cell === "pass").length,
                 total: Object.keys(result.cells).length,
               })}
             </span>
