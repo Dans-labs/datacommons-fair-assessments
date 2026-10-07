@@ -60,7 +60,7 @@ export function useAssessmentSubmit() {
           const result = await performAssessment.mutateAsync({
             pid: jsonData[0].fileName,
             assessors: ["offline"],
-            metadata: jsonData[0],
+            metadata: jsonData[0].metadata,
           });
           setOfflineAssessments([{ fileName: jsonData[0].fileName, result: result.offline }]);
         }
