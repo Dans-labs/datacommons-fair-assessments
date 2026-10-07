@@ -109,7 +109,7 @@ export function StatusBadge({ status, size = "md" }: { status: string; size?: "s
 
 // Still pretty random. Todo.
 function scoreToStatus(score: number | null) {
-  if (!score) return "indeterminate";
+  if (score == null) return "indeterminate";
   if (score === 100) return "pass";
   if (score >= 1) return "partial";
   return "fail";
