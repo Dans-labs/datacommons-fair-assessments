@@ -46,6 +46,7 @@ export function cachedAssessmentResultsQuery(pid: string) {
     queryFn: () => fetchCachedAssessmentResults(pid),
   };
 }
+
 export function useCachedAssessmentResults(pid: string) {
   return useQuery(cachedAssessmentResultsQuery(pid));
 }

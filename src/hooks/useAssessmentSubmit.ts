@@ -52,8 +52,10 @@ export function useAssessmentSubmit() {
     const runErrors: Record<string, string> = {};
 
     try {
-      const cachedResults = await queryClient.query(cachedAssessmentResultsQuery(trimmedPid));
-      if (cachedResults.results?.length && !hasCached) {
+      const cachedResults = hasUrl
+        ? await queryClient.query(cachedAssessmentResultsQuery(trimmedPid))
+        : null;
+      if (cachedResults && cachedResults.results?.length && !hasCached) {
         setAssessmentId(cachedResults.id);
         setHasCached(true);
         if (hasJson) {

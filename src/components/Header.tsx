@@ -7,7 +7,12 @@ export default function Header() {
         <img
           src="/logos/datacommons-logo-white.svg"
           alt="EOSC DataCommons"
-          className="mb-3 max-w-full w-50"
+          className="mb-3 max-w-full w-50 hidden dark:block"
+        />
+        <img
+          src="/logos/datacommons-logo-black.svg"
+          alt="EOSC DataCommons"
+          className="mb-3 max-w-full w-50 dark:hidden"
         />
         <h1 className="text-4xl font-bold">{m.homeHeader()}</h1>
         <p className="text-slate-800 dark:text-slate-300 mb-0">{m.homeDescription()}</p>

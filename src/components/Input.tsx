@@ -3,7 +3,7 @@ import type { JsonWithFileName } from "#/api/assessment";
 import { Field } from "@base-ui/react/field";
 import { Input as BaseInput } from "@base-ui/react/input";
 import { useDropzone, type FileRejection } from "react-dropzone";
-import { XMarkIcon } from "@heroicons/react/20/solid";
+import { XCircleIcon } from "@heroicons/react/20/solid";
 import { useCallback, useEffect, useState } from "react";
 import { m } from "@/paraglide/messages";
 
@@ -190,7 +190,7 @@ export function Dropzone({
                   aria-label="Clear selected file"
                   className="text-slate-500 hover:text-red-700 dark:text-slate-400 transition-colors cursor-pointer"
                 >
-                  <XMarkIcon className="h-6 w-6" />
+                  <XCircleIcon className="h-6 w-6" />
                 </button>
                 <span className="font-medium">{name}</span>
               </span>
@@ -199,10 +199,12 @@ export function Dropzone({
         ) : isDragActive ? (
           <span className="opacity-50">{m.dropFiles()}</span>
         ) : (
-          <span className="opacity-50">{m.selectFiles()}</span>
+          <span className="opacity-50 text-center py-3 block">{m.selectFiles()}</span>
         )}
         {fileNames.length >= maxFiles && (
-          <p className="text-slate-500 text-xs mt-1 mb-0">{m.maxFilesReached({ maxFiles })}</p>
+          <p className="text-slate-500 text-xs mt-3 mb-0 block text-center">
+            {m.maxFilesReached({ maxFiles })}
+          </p>
         )}
       </div>
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}

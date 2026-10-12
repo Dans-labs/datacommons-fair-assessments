@@ -2,20 +2,22 @@
 
 export default function Footer() {
   return (
-    <footer className="p-4 lg:p-4 flex flex-col items-center justify-center">
+    <footer className="p-4 md:p-8 flex flex-col items-center justify-center">
       {/* <ThemeSwitch expanded /> */}
-      <div className="grid sm:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-8 max-w-xs sm:max-w-xl lg:max-w-5xl xl:max-w-400 text-xs opacity-40">
-        <div className="sm:col-span-3 lg:col-span-2 self-start">
+      <div className="grid sm:grid-cols-12 gap-6 sm:gap-8 md:gap-10 lg:gap-12 max-w-50 sm:max-w-400 text-xs opacity-40">
+        <div className="sm:col-span-3 self-start">
           <img
             src="/logos/datacommons-logo-white.svg"
             alt="EOSC DataCommons"
             className="invert dark:invert-0 grayscale"
           />
         </div>
-        <div className="sm:col-span-2 lg:col-span-1 self-start">
+
+        <div className="sm:col-span-2 self-start">
           <img src="/logos/logo-dans-rgb.svg" alt="DANS" className="grayscale" />
         </div>
-        <div className="sm:col-span-3 flex items-start gap-4 lg:col-span-3 lg:self-start">
+
+        <div className="sm:col-span-3 lg:self-start flex flex-col xl:flex-row items-start gap-4">
           <img
             src="/logos/SURF_diap.svg"
             alt="SURF"
@@ -26,11 +28,12 @@ export default function Footer() {
             Cooperative using grant no. EINF-17782.
           </p>
         </div>
-        <div className="sm:col-span-2 lg:col-span-2 xl:col-span-4 lg:self-start flex flex-col xl:flex-row items-start gap-4">
+
+        <div className="sm:col-span-4 lg:self-start flex flex-col xl:flex-row items-start gap-4">
           <img
             src="/logos/EN_FundedbytheEU_RGB_NEG.svg"
             alt="Funded by the European Union"
-            className="grayscale invert dark:invert-0 xl:w-50"
+            className="grayscale invert dark:invert-0 max-w-56"
           />
           <p className="mb-0 leading-4">
             This work has received funding from the European Union’s Horizon Europe research and

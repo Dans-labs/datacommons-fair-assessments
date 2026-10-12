@@ -53,13 +53,6 @@ export function OfflineAssessment({
   return (
     <div className="sm:pl-8 pt-4 sm:pt-0">
       <h2>{m.offlineAssessment()}</h2>
-      <p className="text-sm">{m.offlineAssessmentDescription()}</p>
-      <Dropzone
-        onJsonLoaded={onJsonLoaded}
-        maxFiles={1}
-        disabled={hasResults}
-        jsonData={jsonData}
-      />
       <p className="text-sm mt-4">{m.offlineAssessmentExternalUrl()}</p>
       <div className="flex gap-2">
         <Input
@@ -82,6 +75,13 @@ export function OfflineAssessment({
           {isPending ? <Loader size="4" noPadding /> : m.fetch()}
         </Button>
       </div>
+      <p className="text-sm mt-4">{m.offlineAssessmentDescription()}</p>
+      <Dropzone
+        onJsonLoaded={onJsonLoaded}
+        maxFiles={1}
+        disabled={hasResults}
+        jsonData={jsonData}
+      />
       {(error || parseError) && (
         <span className="text-red-500 text-xs">{parseError ?? String(error)}</span>
       )}
